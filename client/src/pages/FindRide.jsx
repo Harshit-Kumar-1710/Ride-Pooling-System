@@ -1,34 +1,115 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import API from '../services/api';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+const pickupIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41], iconAnchor: [12, 41]
+});
+
+const dropIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41], iconAnchor: [12, 41]
+});
+
+const MapClickHandler = ({ step, onPickupSet, onDropSet }) => {
+  useMapEvents({
+    click: async (e) => {
+      const { lat, lng } = e.latlng;
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+      const data = await res.json();
+      const label = data.display_name?.split(',').slice(0, 2).join(',') || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      if (step === 'pickup') onPickupSet({ lat, lng, label });
+      else onDropSet({ lat, lng, label });
+    }
+  });
+  return null;
+};
+
+const SearchBox = ({ placeholder, onSelect }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const search = async () => {
+    if (!query.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=in`);
+      const data = await res.json();
+      setResults(data);
+    } catch { }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={sStyles.searchRow}>
+        <input style={sStyles.searchInput} placeholder={placeholder}
+          value={query} onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && search()} />
+        <button style={sStyles.searchBtn} onClick={search} type="button">
+          {loading ? '...' : '🔍'}
+        </button>
+      </div>
+      {results.length > 0 && (
+        <div style={sStyles.results}>
+          {results.map((r, i) => (
+            <div key={i} style={sStyles.resultItem}
+              onClick={() => {
+                onSelect({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), label: r.display_name?.split(',').slice(0, 2).join(',') });
+                setResults([]);
+                setQuery(r.display_name?.split(',').slice(0, 2).join(','));
+              }}>
+              📍 {r.display_name?.split(',').slice(0, 3).join(', ')}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const sStyles = {
+  searchRow:   { display: 'flex', gap: '0.5rem' },
+  searchInput: { flex: 1, padding: '0.65rem 0.9rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none' },
+  searchBtn:   { padding: '0.65rem 0.9rem', background: 'var(--accent)', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '1rem' },
+  results:     { position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', zIndex: 1000, maxHeight: '200px', overflowY: 'auto' },
+  resultItem:  { padding: '0.6rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)', borderBottom: '1px solid var(--border)' }
+};
 
 const FindRide = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    pickupLabel: '', pickupLat: '', pickupLng: '',
-    dropLabel: '',   dropLat: '',   dropLng: '',
-    preferredTime: ''
-  });
-  const [rides, setRides]     = useState([]);
+  const [step, setStep]         = useState('pickup');
+  const [pickup, setPickup]     = useState(null);
+  const [drop, setDrop]         = useState(null);
+  const [preferredTime, setPreferredTime] = useState('');
+  const [rides, setRides]       = useState([]);
   const [searched, setSearched] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  const handleSearch = async () => {
+    if (!pickup || !drop) return setError('Please select pickup and drop on the map.');
     setLoading(true);
     setError('');
     try {
       const res = await API.post('/rides/search', {
-        pickupLat:   form.pickupLat,
-        pickupLng:   form.pickupLng,
-        pickupLabel: form.pickupLabel,
-        dropLat:     form.dropLat,
-        dropLng:     form.dropLng,
-        dropLabel:   form.dropLabel,
-        preferredTime: form.preferredTime || undefined
+        pickupLat: pickup.lat, pickupLng: pickup.lng, pickupLabel: pickup.label,
+        dropLat:   drop.lat,   dropLng:   drop.lng,   dropLabel:   drop.label,
+        ...(preferredTime && { preferredTime })
       });
       setRides(res.data.rides);
       setSearched(true);
@@ -43,125 +124,155 @@ const FindRide = () => {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
   });
 
+  const scoreColor = (score) => {
+    if (score < 0) return 'var(--green)';
+    if (score < 0.2) return 'var(--accent)';
+    return 'var(--orange)';
+  };
+
   return (
-    <div style={styles.container}>
-
-      {/* Search Form */}
-      <div style={styles.card}>
-        <h2 style={styles.title}>Find a Ride</h2>
-        <p style={styles.sub}>Enter your pickup and drop location</p>
-        {error && <p style={styles.error}>{error}</p>}
-        <form onSubmit={handleSearch}>
-          <label style={styles.label}>Pickup location</label>
-          <input style={styles.input} name="pickupLabel"
-            placeholder="Pickup name (e.g. GEU Hostel)"
-            value={form.pickupLabel} onChange={handleChange} required />
-          <div style={styles.row}>
-            <input style={styles.half} name="pickupLat"
-              placeholder="Latitude" value={form.pickupLat}
-              onChange={handleChange} required />
-            <input style={styles.half} name="pickupLng"
-              placeholder="Longitude" value={form.pickupLng}
-              onChange={handleChange} required />
-          </div>
-
-          <label style={styles.label}>Drop location</label>
-          <input style={styles.input} name="dropLabel"
-            placeholder="Drop name (e.g. Dehradun Bus Stand)"
-            value={form.dropLabel} onChange={handleChange} required />
-          <div style={styles.row}>
-            <input style={styles.half} name="dropLat"
-              placeholder="Latitude" value={form.dropLat}
-              onChange={handleChange} required />
-            <input style={styles.half} name="dropLng"
-              placeholder="Longitude" value={form.dropLng}
-              onChange={handleChange} required />
-          </div>
-
-          <label style={styles.label}>Preferred departure time (optional)</label>
-          <input style={styles.input} name="preferredTime"
-            type="datetime-local" value={form.preferredTime}
-            onChange={handleChange} />
-
-          <button style={styles.btn} type="submit" disabled={loading}>
-            {loading ? 'Searching...' : 'Search Rides'}
-          </button>
-          <button style={styles.back} type="button"
-            onClick={() => navigate('/dashboard')}>
-            Back
-          </button>
-        </form>
-      </div>
-
-      {/* Results */}
-      {searched && (
-        <div style={styles.results}>
-          {rides.length === 0 ? (
-            <div style={styles.empty}>
-              <p style={styles.emptyText}>No rides found on your route.</p>
-              <p style={styles.emptySub}>Try different coordinates or a different time.</p>
-            </div>
-          ) : (
-            <>
-              <p style={styles.resultCount}>{rides.length} ride{rides.length > 1 ? 's' : ''} found</p>
-              {rides.map((ride, i) => (
-                <div key={ride._id} style={styles.rideCard}>
-                  <div style={styles.rideTop}>
-                    <div>
-                      <p style={styles.route}>
-                        {ride.origin.label} → {ride.destination.label}
-                      </p>
-                      <p style={styles.driver}>
-                        Driver: {ride.driverId.name} ({ride.driverId.collegeId})
-                      </p>
-                    </div>
-                    <div style={styles.badge}>#{i + 1} match</div>
-                  </div>
-                  <div style={styles.rideInfo}>
-                    <span style={styles.chip}>🕐 {formatTime(ride.departureTime)}</span>
-                    <span style={styles.chip}>💺 {ride.seatsAvailable} seats</span>
-                    <span style={styles.chip}>📍 {ride.detourDistance} km detour</span>
-                    <span style={styles.chip}>⭐ {ride.driverId.rating}/5</span>
-                  </div>
-                  <button style={styles.bookBtn}
-                    onClick={() => navigate(`/rides/${ride._id}`, { state: { ride, form } })}>
-                    View & Book
-                  </button>
-                </div>
-              ))}
-            </>
-          )}
+    <div style={styles.page}>
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>← Back</button>
+          <h2 style={styles.title}>Find a Ride</h2>
         </div>
-      )}
+
+        <div style={styles.grid}>
+          {/* Left panel */}
+          <div style={styles.leftPanel}>
+            <div style={styles.formCard}>
+              <div style={styles.section}>
+                <label style={styles.label}>
+                  <span style={{ color: 'var(--green)' }}>● </span>
+                  Pickup — {pickup ? pickup.label : 'click map or search'}
+                </label>
+                <SearchBox placeholder="Search pickup..." onSelect={(loc) => { setPickup(loc); setStep('drop'); }} />
+              </div>
+
+              <div style={styles.section}>
+                <label style={styles.label}>
+                  <span style={{ color: 'var(--red)' }}>● </span>
+                  Drop — {drop ? drop.label : 'click map or search'}
+                </label>
+                <SearchBox placeholder="Search drop..." onSelect={(loc) => { setDrop(loc); }} />
+              </div>
+
+              <div style={styles.mapHint}>
+                <span style={{ color: step === 'pickup' ? 'var(--green)' : 'var(--red)', fontSize: '0.82rem' }}>
+                  {step === 'pickup' ? '● Click map to set pickup' : '● Click map to set drop'}
+                </span>
+              </div>
+
+              <div style={styles.section}>
+                <label style={styles.label}>Preferred time (optional)</label>
+                <input style={styles.input} type="datetime-local"
+                  value={preferredTime} onChange={e => setPreferredTime(e.target.value)} />
+              </div>
+
+              {error && <div style={styles.error}>{error}</div>}
+
+              <button style={styles.searchBtn} onClick={handleSearch} disabled={loading || !pickup || !drop}>
+                {loading ? 'Searching...' : '🔍  Search Rides'}
+              </button>
+            </div>
+
+            {/* Results */}
+            {searched && (
+              <div style={styles.results}>
+                {rides.length === 0 ? (
+                  <div style={styles.empty}>
+                    <div style={styles.emptyIcon}>🚗</div>
+                    <p style={styles.emptyText}>No rides found on your route</p>
+                    <p style={styles.emptySub}>Try different coordinates or remove the time filter</p>
+                  </div>
+                ) : (
+                  <>
+                    <p style={styles.resultCount}>{rides.length} ride{rides.length > 1 ? 's' : ''} found</p>
+                    {rides.map((ride, i) => (
+                      <div key={ride._id} style={styles.rideCard}
+                        onClick={() => navigate(`/rides/${ride._id}`, { state: { ride, pickup, drop } })}>
+                        <div style={styles.rideTop}>
+                          <div style={{ ...styles.matchBadge, background: scoreColor(ride.score) + '22', color: scoreColor(ride.score), border: `1px solid ${scoreColor(ride.score)}44` }}>
+                            #{i + 1} match
+                          </div>
+                          <span style={styles.seats}>💺 {ride.seatsAvailable} seats</span>
+                        </div>
+                        <p style={styles.rideRoute}>
+                          {ride.origin.label} → {ride.destination.label}
+                        </p>
+                        <p style={styles.rideDriver}>
+                          {ride.driverId.name} · {ride.driverId.collegeId}
+                        </p>
+                        <div style={styles.rideMeta}>
+                          <span style={styles.chip}>🕐 {formatTime(ride.departureTime)}</span>
+                          <span style={styles.chip}>📍 {ride.detourDistance} km detour</span>
+                          <span style={styles.chip}>⭐ {ride.driverId.rating}/5</span>
+                        </div>
+                        <div style={styles.bookArrow}>View & Book →</div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Map */}
+          <div style={styles.mapPanel}>
+            <MapContainer center={[30.3165, 78.0322]} zoom={13}
+              style={{ height: '100%', width: '100%', borderRadius: 'var(--radius-md)' }}>
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap' />
+              <MapClickHandler
+                step={step}
+                onPickupSet={(loc) => { setPickup(loc); setStep('drop'); }}
+                onDropSet={(loc) => { setDrop(loc); }}
+              />
+              {pickup && <Marker position={[pickup.lat, pickup.lng]} icon={pickupIcon}><Popup>{pickup.label}</Popup></Marker>}
+              {drop   && <Marker position={[drop.lat,   drop.lng]}   icon={dropIcon}><Popup>{drop.label}</Popup></Marker>}
+              {pickup && drop && (
+                <Polyline positions={[[pickup.lat, pickup.lng], [drop.lat, drop.lng]]}
+                  color="#7c6aff" weight={3} dashArray="8 6" />
+              )}
+            </MapContainer>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 const styles = {
-  container: { minHeight: '100vh', background: '#f0f4f8', padding: '2rem 1rem' },
-  card:  { background: '#fff', borderRadius: '12px', padding: '2rem', maxWidth: '540px', margin: '0 auto', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' },
-  title: { color: '#1E3A5F', marginBottom: '0.3rem' },
-  sub:   { color: '#888', fontSize: '0.9rem', marginBottom: '1.5rem' },
-  label: { display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#444', marginBottom: '4px', marginTop: '0.8rem' },
-  input: { display: 'block', width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '0.95rem', boxSizing: 'border-box', marginBottom: '0.5rem' },
-  row:   { display: 'flex', gap: '0.8rem' },
-  half:  { flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '0.9rem', boxSizing: 'border-box', marginBottom: '0.5rem' },
-  btn:   { width: '100%', padding: '11px', background: '#1E3A5F', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1rem', cursor: 'pointer', marginTop: '1rem' },
-  back:  { width: '100%', padding: '10px', background: 'transparent', color: '#1E3A5F', border: '1px solid #1E3A5F', borderRadius: '8px', fontSize: '0.95rem', cursor: 'pointer', marginTop: '0.8rem' },
-  error: { background: '#fdecea', color: '#c0392b', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' },
-  results:     { maxWidth: '540px', margin: '1.5rem auto 0' },
-  resultCount: { color: '#555', fontSize: '0.9rem', marginBottom: '1rem' },
-  rideCard:    { background: '#fff', borderRadius: '12px', padding: '1.2rem 1.5rem', marginBottom: '1rem', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' },
-  rideTop:     { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' },
-  route:       { fontWeight: '600', color: '#1E3A5F', fontSize: '0.95rem', marginBottom: '0.2rem' },
-  driver:      { color: '#777', fontSize: '0.85rem' },
-  badge:       { background: '#E8EEF5', color: '#1E3A5F', fontSize: '0.75rem', fontWeight: '600', padding: '3px 10px', borderRadius: '20px' },
-  rideInfo:    { display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' },
-  chip:        { background: '#f5f5f5', color: '#555', fontSize: '0.8rem', padding: '4px 10px', borderRadius: '20px' },
-  bookBtn:     { width: '100%', padding: '10px', background: '#27AE60', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.95rem', cursor: 'pointer' },
-  empty:       { background: '#fff', borderRadius: '12px', padding: '2.5rem', textAlign: 'center' },
-  emptyText:   { color: '#555', fontWeight: '600', marginBottom: '0.5rem' },
-  emptySub:    { color: '#999', fontSize: '0.85rem' }
+  page:        { minHeight: '100vh', background: 'var(--bg-primary)', padding: '1.5rem 1rem' },
+  container:   { maxWidth: '1200px', margin: '0 auto' },
+  header:      { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' },
+  backBtn:     { background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem' },
+  title:       { fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em' },
+  grid:        { display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', height: '80vh' },
+  leftPanel:   { display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' },
+  formCard:    { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' },
+  mapPanel:    { borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' },
+  section:     { display: 'flex', flexDirection: 'column', gap: '0.4rem' },
+  label:       { fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)' },
+  input:       { padding: '0.65rem 0.9rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '0.9rem', outline: 'none' },
+  mapHint:     { fontSize: '0.82rem', color: 'var(--text-muted)' },
+  error:       { background: 'var(--red-soft)', border: '1px solid var(--red)', color: 'var(--red)', padding: '0.65rem', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem' },
+  searchBtn:   { padding: '0.85rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: '0.95rem', fontWeight: '600', cursor: 'pointer' },
+  results:     { display: 'flex', flexDirection: 'column', gap: '0.8rem' },
+  resultCount: { color: 'var(--text-muted)', fontSize: '0.82rem' },
+  rideCard:    { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1.1rem', cursor: 'pointer', transition: 'border-color 0.15s' },
+  rideTop:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' },
+  matchBadge:  { fontSize: '0.75rem', fontWeight: '700', padding: '2px 10px', borderRadius: '99px' },
+  seats:       { color: 'var(--text-muted)', fontSize: '0.82rem' },
+  rideRoute:   { fontWeight: '600', fontSize: '0.9rem', marginBottom: '0.2rem' },
+  rideDriver:  { color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.6rem' },
+  rideMeta:    { display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.6rem' },
+  chip:        { background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.78rem', padding: '3px 8px', borderRadius: '99px' },
+  bookArrow:   { color: 'var(--accent)', fontSize: '0.82rem', fontWeight: '600' },
+  empty:       { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '2rem', textAlign: 'center' },
+  emptyIcon:   { fontSize: '2rem', marginBottom: '0.8rem' },
+  emptyText:   { fontWeight: '600', marginBottom: '0.3rem' },
+  emptySub:    { color: 'var(--text-muted)', fontSize: '0.85rem' }
 };
 
 export default FindRide;

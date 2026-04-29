@@ -9,6 +9,7 @@ import OfferRide from './pages/OfferRide';
 import FindRide  from './pages/FindRide';
 import RideDetail from './pages/RideDetail';
 import MyRides   from './pages/MyRides';
+import TrackRide from './pages/TrackRide';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/find-ride"   element={<ProtectedRoute><FindRide /></ProtectedRoute>} />
           <Route path="/rides/:id"   element={<ProtectedRoute><RideDetail /></ProtectedRoute>} />
           <Route path="/my-rides"    element={<ProtectedRoute><MyRides /></ProtectedRoute>} />
+          <Route path="/track/:id" element={<ProtectedRoute><TrackRide /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
