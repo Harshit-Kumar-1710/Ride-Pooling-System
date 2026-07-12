@@ -1,5 +1,7 @@
 const Booking = require('../models/Booking');
 const Ride    = require('../models/Ride');
+const User    = require('../models/User');
+const { sendBookingConfirmation, sendNewBookingToDriver, sendBookingCancellation } = require('../services/emailService');
 
 // POST /api/bookings — book a ride
 const createBooking = async (req, res) => {
@@ -35,6 +37,14 @@ const createBooking = async (req, res) => {
     await ride.save();
 
     res.status(201).json({ message: 'Ride booked successfully.', booking });
+
+    // Send emails asynchronously (don't block response)
+    try {
+      const passenger = await User.findById(req.user.id);
+      const driver = await User.findById(ride.driverId);
+      if (passenger?.personalEmail) sendBookingConfirmation(passenger, ride, booking);
+      if (driver?.personalEmail) sendNewBookingToDriver(driver, passenger, ride, booking);
+    } catch (emailErr) { console.error('Booking email error:', emailErr.message); }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error.' });
@@ -60,6 +70,15 @@ const cancelBooking = async (req, res) => {
     });
 
     res.status(200).json({ message: 'Booking cancelled. Seat restored.' });
+
+    // Send cancellation emails
+    try {
+      const passenger = await User.findById(booking.passengerId);
+      const ride = await Ride.findById(booking.rideId);
+      const driver = await User.findById(ride?.driverId);
+      if (passenger?.personalEmail) sendBookingCancellation(passenger, ride, 'passenger');
+      if (driver?.personalEmail) sendBookingCancellation(driver, ride, 'driver');
+    } catch (emailErr) { console.error('Cancel email error:', emailErr.message); }
   } catch (err) {
     res.status(500).json({ message: 'Server error.' });
   }

@@ -24,6 +24,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  personalEmail: {
+    type: String,
+    required: true,
+    trim: true,
+    lowercase: true
+  },
+  resetPasswordToken: {
+    type: String
+  },
+  resetPasswordExpires: {
+    type: Date
+  },
   credits: {
     type: Number,
     default: 0
