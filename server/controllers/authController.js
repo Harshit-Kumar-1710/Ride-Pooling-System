@@ -8,6 +8,11 @@ const isValidCollegeId = (id) => {
   return pattern.test(id);
 };
 
+const isValidEmailFormat = (email) => {
+  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return pattern.test(email);
+};
+
 const register = async (req, res) => {
   try {
     const { collegeId, name, email, personalEmail, password } = req.body;
@@ -22,6 +27,10 @@ const register = async (req, res) => {
 
     if (!email.endsWith('@geu.ac.in')) {
       return res.status(400).json({ message: 'Please use your college email address.' });
+    }
+
+    if (!isValidEmailFormat(personalEmail)) {
+      return res.status(400).json({ message: 'Please enter a valid personal email address.' });
     }
 
     const existingUser = await User.findOne({
