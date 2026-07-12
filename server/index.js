@@ -8,16 +8,19 @@ const authRoutes    = require('./routes/authRoutes');
 const creditRoutes  = require('./routes/creditRoutes');
 const rideRoutes    = require('./routes/rideRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const reviewRoutes  = require('./routes/reviewRoutes');
 
 const app    = express();
 const server = http.createServer(app);
-const io     = new Server(server, {
-  cors: { origin: 'http://localhost:5173', methods: ['GET', 'POST'] }
+
+// Allow all origins dynamically to prevent Vercel CORS issues
+const io = new Server(server, {
+  cors: { origin: true, methods: ['GET', 'POST'], credentials: true }
 });
 
 connectDB();
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -25,8 +28,12 @@ app.use('/api/auth',     authRoutes);
 app.use('/api/credits',  creditRoutes);
 app.use('/api/rides',    rideRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/reviews',  reviewRoutes);
 
 app.get('/', (req, res) => res.json({ message: 'Ridepooling API is running' }));
+
+// In-memory chat storage
+const chatHistory = {};
 
 // Socket.io — live tracking
 io.on('connection', (socket) => {
@@ -52,6 +59,22 @@ io.on('connection', (socket) => {
   // Driver starts the ride
   socket.on('ride:started', ({ rideId }) => {
     io.to(`ride:${rideId}`).emit('ride:started', { rideId });
+  });
+
+  // ── Ride Chat ──
+  socket.on('chat:join', ({ rideId, userName }) => {
+    socket.join(`chat:${rideId}`);
+    // Send chat history for this ride
+    socket.emit('chat:history', chatHistory[rideId] || []);
+  });
+
+  socket.on('chat:send', ({ rideId, senderId, senderName, text }) => {
+    const msg = { senderId, senderName, text, timestamp: new Date().toISOString() };
+    if (!chatHistory[rideId]) chatHistory[rideId] = [];
+    chatHistory[rideId].push(msg);
+    // Keep only last 100 messages per ride
+    if (chatHistory[rideId].length > 100) chatHistory[rideId].shift();
+    io.to(`chat:${rideId}`).emit('chat:message', msg);
   });
 
   socket.on('disconnect', () => {
