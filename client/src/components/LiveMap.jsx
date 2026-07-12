@@ -87,7 +87,7 @@ const LiveMap = ({ rideId, ride, height = '400px' }) => {
       <MapContainer center={center} zoom={14}
         style={{ height, width: '100%', borderRadius: 'var(--radius-md)' }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap' />
-        {route && <Polyline positions={route} color="#7c6aff" weight={4} opacity={0.7} />}
+        {route && <Polyline positions={route} color="#e63946" weight={4} opacity={0.8} />}
         <Marker position={[ride.origin.latitude, ride.origin.longitude]} icon={originIcon}>
           <Popup>Origin: {ride.origin.label}</Popup>
         </Marker>

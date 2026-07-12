@@ -52,8 +52,8 @@ const MyRides = () => {
 
   const statusStyle = (status) => {
     const map = {
-      open: { background: 'var(--green-soft)', color: 'var(--green)', border: '1px solid var(--green)' },
-      full: { background: 'var(--orange-soft)', color: 'var(--orange)', border: '1px solid var(--orange)' },
+      open:      { background: 'var(--green-soft)', color: 'var(--green)', border: '1px solid var(--green)' },
+      full:      { background: 'var(--orange-soft)', color: 'var(--orange)', border: '1px solid var(--orange)' },
       completed: { background: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid var(--accent)' },
       cancelled: { background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid var(--red)' },
       confirmed: { background: 'var(--green-soft)', color: 'var(--green)', border: '1px solid var(--green)' },
@@ -62,7 +62,10 @@ const MyRides = () => {
   };
 
   if (loading) return (
-    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+      <div style={{ width: '24px', height: '24px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.6s linear infinite', margin: '0 auto 1rem' }} />
+      Loading your rides...
+    </div>
   );
 
   return (
@@ -99,8 +102,10 @@ const MyRides = () => {
                 <p style={styles.emptyText}>No rides offered yet</p>
                 <button style={styles.emptyBtn} onClick={() => navigate('/offer-ride')}>Offer a Ride</button>
               </div>
-            ) : offered.map(ride => (
-              <div key={ride._id} style={styles.card}>
+            ) : offered.map((ride, i) => (
+              <div key={ride._id} style={{ ...styles.card, animationDelay: `${i * 0.06}s` }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--shadow-card-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}>
                 <div style={styles.cardTop}>
                   <p style={styles.route}>{ride.origin.label} → {ride.destination.label}</p>
                   <span style={{ ...styles.badge, ...statusStyle(ride.status) }}>{ride.status}</span>
@@ -111,16 +116,13 @@ const MyRides = () => {
                 </div>
                 {(ride.status === 'open' || ride.status === 'full') && (
                   <div style={styles.btnRow}>
-                    <button style={styles.completeBtn} onClick={() => handleComplete(ride._id)}>
-                      ✓ Mark Complete
-                    </button>
-                    <button style={styles.trackBtn} onClick={() => navigate(`/track/${ride._id}`)}>
-                      Track
-                    </button>
-                    <button style={styles.cancelBtn} onClick={() => handleCancel(ride._id)}>
-                      Cancel
-                    </button>
+                    <button style={styles.completeBtn} onClick={() => handleComplete(ride._id)}>✓ Complete</button>
+                    <button style={styles.trackBtn} onClick={() => navigate(`/track/${ride._id}`)}>Track</button>
+                    <button style={styles.cancelBtn} onClick={() => handleCancel(ride._id)}>Cancel</button>
                   </div>
+                )}
+                {ride.status === 'completed' && (
+                  <button style={styles.rateBtn} onClick={() => navigate(`/review/${ride._id}`)}>⭐ Rate Passengers</button>
                 )}
               </div>
             ))}
@@ -135,12 +137,12 @@ const MyRides = () => {
                 <p style={styles.emptyText}>No rides booked yet</p>
                 <button style={styles.emptyBtn} onClick={() => navigate('/find-ride')}>Find a Ride</button>
               </div>
-            ) : booked.map(booking => (
-              <div key={booking._id} style={styles.card}>
+            ) : booked.map((booking, i) => (
+              <div key={booking._id} style={{ ...styles.card, animationDelay: `${i * 0.06}s` }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = 'var(--shadow-card-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}>
                 <div style={styles.cardTop}>
-                  <p style={styles.route}>
-                    {booking.rideId?.origin?.label} → {booking.rideId?.destination?.label}
-                  </p>
+                  <p style={styles.route}>{booking.rideId?.origin?.label} → {booking.rideId?.destination?.label}</p>
                   <span style={{ ...styles.badge, ...statusStyle(booking.status) }}>{booking.status}</span>
                 </div>
                 <div style={styles.meta}>
@@ -148,9 +150,13 @@ const MyRides = () => {
                   <span style={styles.chip}>📍 Drop: {booking.dropPoint?.label}</span>
                 </div>
                 {booking.status === 'confirmed' && (
-                  <button style={styles.cancelBtn} onClick={() => handleCancelBooking(booking._id)}>
-                    Cancel Booking
-                  </button>
+                  <div style={styles.btnRow}>
+                    <button style={styles.trackBtn} onClick={() => navigate(`/track/${booking.rideId?._id}`)}>💬 Track & Chat</button>
+                    <button style={styles.cancelBtn} onClick={() => handleCancelBooking(booking._id)}>Cancel</button>
+                  </div>
+                )}
+                {booking.rideId?.status === 'completed' && (
+                  <button style={styles.rateBtn} onClick={() => navigate(`/review/${booking.rideId?._id}`)}>⭐ Rate Driver</button>
                 )}
               </div>
             ))}
@@ -163,30 +169,31 @@ const MyRides = () => {
 
 const styles = {
   page:        { minHeight: '100vh', background: 'var(--bg-primary)', padding: '1.5rem 1rem' },
-  container:   { maxWidth: '700px', margin: '0 auto' },
-  header:      { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' },
-  backBtn:     { background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem' },
-  title:       { fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em' },
-  msgBox:      { background: 'var(--green-soft)', border: '1px solid var(--green)', color: 'var(--green)', padding: '0.8rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  container:   { maxWidth: '740px', margin: '0 auto', animation: 'fadeIn 0.4s ease' },
+  header:      { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', animation: 'fadeInUp 0.5s ease forwards', opacity: 0 },
+  backBtn:     { background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '0.45rem 1rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s' },
+  title:       { fontFamily: "'Outfit', sans-serif", fontSize: '1.5rem', fontWeight: '800', letterSpacing: '-0.02em' },
+  msgBox:      { background: 'var(--green-soft)', border: '1px solid var(--green)', color: 'var(--green)', padding: '0.8rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', animation: 'fadeInUp 0.3s ease' },
   msgClose:    { background: 'transparent', border: 'none', color: 'var(--green)', cursor: 'pointer', fontSize: '1rem' },
-  tabs:        { display: 'flex', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '4px', gap: '4px', marginBottom: '1.5rem' },
-  tab:         { flex: 1, padding: '0.6rem', background: 'transparent', border: 'none', color: 'var(--text-secondary)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' },
-  tabActive:   { background: 'var(--bg-hover)', color: 'var(--text-primary)' },
+  tabs:        { display: 'flex', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '4px', gap: '4px', marginBottom: '1.5rem', animation: 'fadeInUp 0.5s ease 0.1s forwards', opacity: 0 },
+  tab:         { flex: 1, padding: '0.65rem', background: 'transparent', border: 'none', color: 'var(--text-secondary)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '500', transition: 'all 0.25s ease' },
+  tabActive:   { background: 'var(--accent-soft)', color: 'var(--accent)', fontWeight: '600' },
   list:        { display: 'flex', flexDirection: 'column', gap: '0.8rem' },
-  card:        { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1.2rem' },
+  card:        { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1.2rem', transition: 'all 0.3s ease', animation: 'fadeInUp 0.4s ease forwards', opacity: 0 },
   cardTop:     { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.7rem' },
-  route:       { fontWeight: '600', fontSize: '0.95rem', flex: 1, marginRight: '0.8rem' },
-  badge:       { fontSize: '0.75rem', fontWeight: '600', padding: '3px 10px', borderRadius: '99px', whiteSpace: 'nowrap' },
+  route:       { fontWeight: '600', fontSize: '0.93rem', flex: 1, marginRight: '0.8rem' },
+  badge:       { fontSize: '0.72rem', fontWeight: '600', padding: '3px 10px', borderRadius: '99px', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.03em' },
   meta:        { display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.8rem' },
-  chip:        { background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.78rem', padding: '3px 8px', borderRadius: '99px' },
+  chip:        { background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.75rem', padding: '3px 8px', borderRadius: '99px' },
   btnRow:      { display: 'flex', gap: '0.7rem' },
-  completeBtn: { flex: 1, padding: '0.6rem', background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600' },
-  cancelBtn:   { flex: 1, padding: '0.6rem', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem' },
-  empty:       { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '3rem', textAlign: 'center' },
+  completeBtn: { flex: 1, padding: '0.6rem', background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.83rem', fontWeight: '600' },
+  cancelBtn:   { flex: 1, padding: '0.6rem', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.83rem' },
+  trackBtn:    { flex: 1, padding: '0.6rem', background: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.83rem' },
+  rateBtn:     { width: '100%', padding: '0.6rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.83rem', fontWeight: '600', marginTop: '0.5rem', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)' },
+  empty:       { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '3rem', textAlign: 'center', animation: 'fadeInUp 0.5s ease' },
   emptyIcon:   { fontSize: '2.5rem', marginBottom: '0.8rem' },
   emptyText:   { color: 'var(--text-secondary)', marginBottom: '1rem' },
-  emptyBtn:    { padding: '0.6rem 1.2rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600' },
-  trackBtn: { flex: 1, padding: '0.6rem', background: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem' }
+  emptyBtn:    { padding: '0.6rem 1.4rem', background: 'linear-gradient(135deg, var(--accent), var(--accent-hover))', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', boxShadow: '0 4px 15px rgba(230, 57, 70, 0.3)' },
 };
 
 export default MyRides;
