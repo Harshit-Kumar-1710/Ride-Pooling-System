@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Automatically point to Vercel/Render API in production, or localhost in development
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+  baseURL: import.meta.env.VITE_API_URL || 'https://ride-pooling-system.onrender.com/api'
 });
 
 API.interceptors.request.use((req) => {
