@@ -68,12 +68,12 @@ const LandingPage = () => {
         {/* ── Right Side: Luxury Car Collage ── */}
         <div style={styles.heroImages}>
           <img 
-            src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600" 
-            alt="Luxury Ride" 
+            src="https://images.unsplash.com/photo-1549317336-206569e8475c?auto=format&fit=crop&q=80&w=600" 
+            alt="Happy friends in ride" 
             style={{...styles.heroImg, ...styles.img1}} 
           />
           <img 
-            src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&q=80&w=600" 
+            src="https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?auto=format&fit=crop&q=80&w=600" 
             alt="Premium Interior" 
             style={{...styles.heroImg, ...styles.img2}} 
           />
