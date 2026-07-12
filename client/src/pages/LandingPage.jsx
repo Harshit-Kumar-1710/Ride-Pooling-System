@@ -2,13 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
 import MovingCars from '../components/MovingCars';
 import AnimatedStats from '../components/AnimatedStats';
 
 const LandingPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [hoveredFeature, setHoveredFeature] = useState(null);
 
   useEffect(() => {
@@ -25,6 +26,9 @@ const LandingPage = () => {
           <span style={styles.brandRed}>RIDEPOOL</span> <span style={{ color: 'var(--text-primary)' }}>GEU</span>
         </span>
         <div style={styles.navRight}>
+          <button onClick={toggleTheme} style={styles.themeToggle}>
+            {theme === 'dark' ? <Sun size={20} color="#e63946" /> : <Moon size={20} color="#e63946" />}
+          </button>
           <button style={styles.signInBtn} onClick={() => navigate('/login')}>SIGN IN</button>
           <button style={styles.signUpBtn} onClick={() => navigate('/register')}>SIGN UP</button>
         </div>
@@ -241,8 +245,9 @@ const styles = {
   nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem 3rem', position: 'relative', zIndex: 10, animation: 'fadeIn 0.6s ease' },
   brand: { fontFamily: "'Outfit', sans-serif", fontSize: '1.3rem', fontWeight: '900', letterSpacing: '0.08em', color: '#fff' },
   brandRed: { color: 'var(--accent)' },
-  navRight: { display: 'flex', gap: '0.8rem', alignItems: 'center' },
-  signInBtn: { background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: '700', letterSpacing: '0.06em', cursor: 'pointer', padding: '0.5rem 1rem' },
+  navRight: { display: 'flex', gap: '1.2rem', alignItems: 'center' },
+  themeToggle: { background: 'transparent', border: '1px solid var(--border)', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s', padding: 0 },
+  signInBtn: { background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: '700', letterSpacing: '0.06em', cursor: 'pointer', padding: '0.5rem 0' },
   signUpBtn: { background: 'var(--accent)', color: '#fff', border: 'none', padding: '0.55rem 1.5rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '700', letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 4px 20px rgba(230,57,70,0.4)' },
 
   /* Hero */

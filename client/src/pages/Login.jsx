@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { Moon, Sun } from 'lucide-react';
 import MovingCars from '../components/MovingCars';
 import AnimatedStats from '../components/AnimatedStats';
 
 const Login = () => {
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate  = useNavigate();
   const [form, setForm]       = useState({ collegeId: '', password: '' });
   const [error, setError]     = useState('');
@@ -33,6 +36,9 @@ const Login = () => {
     <div style={styles.page}>
       <button style={styles.homeBtn} onClick={() => navigate('/')}>
         ← Back to Home
+      </button>
+      <button onClick={toggleTheme} style={styles.themeToggleBtn}>
+        {theme === 'dark' ? <Sun size={20} color="#e63946" /> : <Moon size={20} color="#e63946" />}
       </button>
       <MovingCars count={5} />
 
@@ -140,16 +146,31 @@ const styles = {
   homeBtn: {
     position: 'absolute',
     top: '2rem',
-    left: '2.5rem',
-    background: 'transparent',
+    left: '2rem',
+    background: 'none',
     border: 'none',
     color: 'var(--text-secondary)',
-    fontSize: '0.85rem',
-    fontWeight: '700',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    zIndex: 10,
+    transition: 'color 0.2s'
+  },
+  themeToggleBtn: {
+    position: 'absolute',
+    top: '1.5rem',
+    right: '2rem',
+    background: 'transparent',
+    border: '1px solid var(--border)',
+    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     cursor: 'pointer',
     zIndex: 10,
-    padding: '0.5rem',
-    transition: 'color 0.2s',
+    transition: 'all 0.2s',
   },
 
   /* ── Left Hero ── */
