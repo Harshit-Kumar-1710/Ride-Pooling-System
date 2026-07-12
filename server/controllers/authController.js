@@ -57,6 +57,37 @@ const register = async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // Send Welcome Email asynchronously (don't await it so we don't slow down registration)
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+
+      transporter.sendMail({
+        from: `"RidePool GEU" <${process.env.EMAIL_USER}>`,
+        to: user.personalEmail,
+        subject: 'Welcome to RidePool GEU! 🚗',
+        html: `
+          <div style="font-family: 'Outfit', sans-serif; max-width: 500px; margin: 0 auto; padding: 2rem; background: #0c0c14; color: #f5f5ff; border-radius: 16px; border: 1px solid #1a1a30;">
+            <h1 style="color: #e63946; font-size: 1.8rem; margin-bottom: 0.5rem; text-align: center;">Welcome, ${user.name}! 🎉</h1>
+            <p style="color: #8888aa; font-size: 1.05rem; text-align: center; margin-bottom: 2rem;">Your account has been successfully created.</p>
+            <div style="background: #111120; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #1a1a30;">
+              <p style="margin: 0 0 10px 0; color: #f5f5ff;"><strong>College ID:</strong> ${user.collegeId}</p>
+              <p style="margin: 0; color: #f5f5ff;"><strong>Personal Email:</strong> ${user.personalEmail}</p>
+            </div>
+            <p style="color: #8888aa; text-align: center; line-height: 1.6;">You can now start finding and offering rides with fellow GEU students. Save money, travel safe, and earn credits!</p>
+            <a href="${process.env.CLIENT_URL || 'https://ride-pooling-system.vercel.app'}" style="display: block; width: fit-content; margin: 2rem auto 0; background: #e63946; color: #fff; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; text-align: center;">Start Riding</a>
+          </div>
+        `
+      });
+    } catch (emailErr) {
+      console.error('Failed to send welcome email:', emailErr);
+    }
+
     res.status(201).json({
       message: 'Account created successfully.',
       token,
