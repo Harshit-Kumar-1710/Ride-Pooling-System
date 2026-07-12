@@ -38,7 +38,7 @@ const LandingPage = () => {
       <section style={styles.hero}>
         <div style={styles.heroContent}>
           <p style={styles.heroTag}>
-            <span style={styles.heroDash}>——</span> COLLEGE RIDE SHARING · DEHRADUN
+            <span style={styles.heroDash}>——</span> PREMIUM COLLEGE RIDES
           </p>
           <h1 style={styles.heroTitle}>
             RIDE<br />
@@ -46,7 +46,7 @@ const LandingPage = () => {
             GO FURTHER.
           </h1>
           <p style={styles.heroSub}>
-            Share rides with fellow GEU students. Save money, earn credits,
+            Share rides with fellow GEU students in premium comfort. Save money, earn credits,
             and travel safe — all in one place.
           </p>
           <div style={styles.heroBtns}>
@@ -62,6 +62,23 @@ const LandingPage = () => {
           <div style={styles.liveIndicator}>
             <span style={styles.liveDot} />
             <span style={styles.liveText}>Live on GEU Campus</span>
+          </div>
+        </div>
+
+        {/* ── Right Side: Luxury Car Collage ── */}
+        <div style={styles.heroImages}>
+          <img 
+            src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600" 
+            alt="Luxury Ride" 
+            style={{...styles.heroImg, ...styles.img1}} 
+          />
+          <img 
+            src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&q=80&w=600" 
+            alt="Premium Interior" 
+            style={{...styles.heroImg, ...styles.img2}} 
+          />
+          <div style={styles.uberBadge}>
+            <span style={styles.uberBadgeDot}></span> Premium Rides
           </div>
         </div>
       </section>
@@ -251,19 +268,27 @@ const styles = {
   signUpBtn: { background: 'var(--accent)', color: '#fff', border: 'none', padding: '0.55rem 1.5rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '700', letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 4px 20px rgba(230,57,70,0.4)' },
 
   /* Hero */
-  hero: { padding: '6rem 3rem 4rem', position: 'relative', zIndex: 1, maxWidth: '900px' },
-  heroContent: { animation: 'slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards', opacity: 0 },
+  hero: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6rem 3rem 4rem', position: 'relative', zIndex: 1, maxWidth: '1300px', margin: '0 auto', gap: '2rem' },
+  heroContent: { animation: 'slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards', opacity: 0, flex: '1', maxWidth: '550px' },
   heroTag: { color: 'var(--accent)', fontSize: '0.78rem', fontWeight: '700', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1.5rem' },
   heroDash: { color: 'var(--accent)', marginRight: '0.6rem' },
-  heroTitle: { fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(3rem, 7vw, 5.5rem)', fontWeight: '900', lineHeight: '0.95', letterSpacing: '-0.04em', color: 'var(--text-primary)', marginBottom: '1.8rem' },
+  heroTitle: { fontFamily: "'Outfit', sans-serif", fontSize: 'clamp(3rem, 6vw, 5.5rem)', fontWeight: '900', lineHeight: '0.95', letterSpacing: '-0.04em', color: 'var(--text-primary)', marginBottom: '1.8rem' },
   heroItalic: { color: 'var(--accent)', fontStyle: 'italic' },
   heroSub: { color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.7', maxWidth: '500px', marginBottom: '2.5rem' },
-  heroBtns: { display: 'flex', gap: '1rem', marginBottom: '2.5rem' },
+  heroBtns: { display: 'flex', gap: '1rem', marginBottom: '2.5rem', flexWrap: 'wrap' },
   ctaPrimary: { background: 'var(--accent)', color: '#fff', border: 'none', padding: '0.85rem 2.2rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '800', letterSpacing: '0.06em', cursor: 'pointer', boxShadow: '0 4px 24px rgba(230,57,70,0.4)' },
   ctaOutline: { background: 'transparent', color: 'var(--text-primary)', border: '2px solid var(--text-primary)', padding: '0.85rem 2.2rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '800', letterSpacing: '0.06em', cursor: 'pointer' },
   liveIndicator: { display: 'flex', alignItems: 'center', gap: '0.6rem' },
   liveDot: { width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 2s ease-in-out infinite', boxShadow: '0 0 10px rgba(230,57,70,0.5)' },
-  liveText: { color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '600', letterSpacing: '0.04em', textTransform: 'uppercase' },
+  liveText: { color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase' },
+
+  /* Hero Images Collage */
+  heroImages: { flex: '1', position: 'relative', height: '450px', display: 'flex', justifyContent: 'center', alignItems: 'center', animation: 'fadeIn 1s ease 0.3s forwards', opacity: 0 },
+  heroImg: { position: 'absolute', borderRadius: '16px', objectFit: 'cover', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' },
+  img1: { width: '300px', height: '380px', right: '40px', top: '10px', zIndex: 2, border: '4px solid var(--bg-primary)' },
+  img2: { width: '260px', height: '240px', left: '10px', bottom: '20px', zIndex: 3, border: '4px solid var(--bg-primary)' },
+  uberBadge: { position: 'absolute', bottom: '80px', right: '10px', background: 'var(--bg-card)', border: '1px solid var(--border)', padding: '12px 20px', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '10px', zIndex: 4, boxShadow: '0 10px 30px rgba(0,0,0,0.3)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '0.9rem', backdropFilter: 'blur(10px)' },
+  uberBadgeDot: { width: '10px', height: '10px', background: 'var(--accent)', borderRadius: '50%' },
 
   /* Stats */
   statsBar: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '2.5rem 3rem', position: 'relative', zIndex: 1, background: 'var(--bg-glass)', backdropFilter: 'blur(10px)' },
