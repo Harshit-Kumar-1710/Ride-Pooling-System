@@ -83,9 +83,11 @@ const register = async (req, res) => {
             <a href="${process.env.CLIENT_URL || 'https://ride-pooling-system.vercel.app'}" style="display: block; width: fit-content; margin: 2rem auto 0; background: #e63946; color: #fff; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; text-align: center;">Start Riding</a>
           </div>
         `
+      }).catch(emailErr => {
+        console.error('Failed to send welcome email asynchronously:', emailErr);
       });
     } catch (emailErr) {
-      console.error('Failed to send welcome email:', emailErr);
+      console.error('Failed to initialize welcome email:', emailErr);
     }
 
     res.status(201).json({
