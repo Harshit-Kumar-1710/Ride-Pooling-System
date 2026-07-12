@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import MovingCars from '../components/MovingCars';
 import AnimatedStats from '../components/AnimatedStats';
+import ride1 from '../assets/ride1.png';
+import ride2 from '../assets/ride2.png';
 
 const LandingPage = () => {
   const { user } = useAuth();
@@ -68,12 +70,12 @@ const LandingPage = () => {
         {/* ── Right Side: Luxury Car Collage ── */}
         <div style={styles.heroImages}>
           <img 
-            src="https://images.unsplash.com/photo-1549317336-206569e8475c?auto=format&fit=crop&q=80&w=600" 
+            src={ride1} 
             alt="Happy friends in ride" 
             style={{...styles.heroImg, ...styles.img1}} 
           />
           <img 
-            src="https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?auto=format&fit=crop&q=80&w=600" 
+            src={ride2} 
             alt="Premium Interior" 
             style={{...styles.heroImg, ...styles.img2}} 
           />
