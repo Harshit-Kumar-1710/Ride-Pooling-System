@@ -197,8 +197,12 @@ const forgotPassword = async (req, res) => {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-      }
+      },
+      connectionTimeout: 10000, // 10 seconds timeout
+      greetingTimeout: 10000
     });
+
+    console.log(`[Forgot Password] Attempting to send reset email to: ${user.personalEmail}`);
 
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
