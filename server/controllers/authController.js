@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const isValidCollegeId = (id) => {
   const pattern = /^[0-9]{8,9}$/;
@@ -59,16 +59,9 @@ const register = async (req, res) => {
 
     // Send Welcome Email asynchronously (don't await it so we don't slow down registration)
     try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
-
-      transporter.sendMail({
-        from: `"RidePool GEU" <${process.env.EMAIL_USER}>`,
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      resend.emails.send({
+        from: 'RidePool GEU <onboarding@resend.dev>',
         to: user.personalEmail,
         subject: 'Welcome to RidePool GEU! 🚗',
         html: `
@@ -84,7 +77,7 @@ const register = async (req, res) => {
           </div>
         `
       }).catch(emailErr => {
-        console.error('Failed to send welcome email asynchronously:', emailErr);
+        console.error('Failed to send welcome email:', emailErr);
       });
     } catch (emailErr) {
       console.error('Failed to initialize welcome email:', emailErr);
@@ -191,26 +184,16 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    // Send email
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // Use STARTTLS on port 587
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      },
-      connectionTimeout: 10000, // 10 seconds timeout
-      greetingTimeout: 10000
-    });
+    // Send email via Resend HTTP API (Render blocks SMTP ports)
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     console.log(`[Forgot Password] Attempting to send reset email to: ${user.personalEmail}`);
 
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
-    await transporter.sendMail({
-      from: `"RidePool GEU" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: 'RidePool GEU <onboarding@resend.dev>',
       to: user.personalEmail,
       subject: 'RidePool GEU - Password Reset',
       html: `
