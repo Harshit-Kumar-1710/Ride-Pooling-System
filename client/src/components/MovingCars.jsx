@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-
-// Premium SVG Car illustrations — sleek, modern, cinematic
+// Premium SVG car illustrations — sleek, modern, cinematic.
 const SportsCarSVG = ({ accentColor }) => (
   <svg viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
     {/* Body Shadow/Underglow */}
@@ -82,32 +80,28 @@ const HypercarSVG = ({ accentColor }) => (
 );
 
 const carComponents = [SportsCarSVG, ModernSUVSVG, HypercarSVG];
-// Premium cinematic accent colors: neon red, electric blue, acid green, cyber purple, bright orange
 const carColors = ['#ff2a4b', '#0ea5e9', '#22c55e', '#a855f7', '#f97316', '#eab308'];
 
-const MovingCars = ({ count = 6 }) => {
-  const [instances, setInstances] = useState([]);
+// Fixed lanes make the motion read as intentional background traffic. They also
+// prevent a large car from randomly cutting through key text after every render.
+const trafficLanes = [
+  { top: 7, duration: 34, delay: -8, direction: 'right', size: 118, opacity: 0.16 },
+  { top: 19, duration: 42, delay: -24, direction: 'left', size: 142, opacity: 0.13 },
+  { top: 33, duration: 38, delay: -14, direction: 'right', size: 128, opacity: 0.14 },
+  { top: 47, duration: 46, delay: -31, direction: 'left', size: 110, opacity: 0.12 },
+  { top: 61, duration: 36, delay: -19, direction: 'right', size: 150, opacity: 0.1 },
+  { top: 74, duration: 44, delay: -5, direction: 'left', size: 122, opacity: 0.12 },
+  { top: 88, duration: 40, delay: -27, direction: 'right', size: 134, opacity: 0.11 },
+  { top: 96, duration: 48, delay: -12, direction: 'left', size: 104, opacity: 0.08 },
+];
 
-  useEffect(() => {
-    const arr = [];
-    for (let i = 0; i < count; i++) {
-      const isLarge = Math.random() > 0.7; // Some cars appear closer (larger)
-      arr.push({
-        id: i,
-        CarComp: carComponents[i % carComponents.length],
-        color: carColors[i % carColors.length],
-        // Position them vertically, avoiding the absolute center if possible
-        top: 5 + Math.random() * 85,
-        duration: (isLarge ? 15 : 25) + Math.random() * 10, // Closer cars move faster
-        delay: Math.random() * -40,
-        direction: Math.random() > 0.5 ? 1 : -1,
-        size: isLarge ? (200 + Math.random() * 50) : (100 + Math.random() * 60),
-        opacity: isLarge ? 1 : 0.8,
-        zIndex: isLarge ? 2 : 0, // Depth layering
-      });
-    }
-    setInstances(arr);
-  }, [count]);
+const MovingCars = ({ count = 6 }) => {
+  const instances = Array.from({ length: count }, (_, index) => ({
+    ...trafficLanes[index % trafficLanes.length],
+    id: index,
+    CarComp: carComponents[index % carComponents.length],
+    color: carColors[index % carColors.length],
+  }));
 
   return (
     <div style={styles.container} aria-hidden="true">
@@ -116,14 +110,13 @@ const MovingCars = ({ count = 6 }) => {
         return (
           <div
             key={c.id}
+            className="moving-car"
             style={{
               position: 'absolute',
               top: `${c.top}%`,
               width: `${c.size}px`,
               opacity: c.opacity,
-              zIndex: c.zIndex,
-              animation: `${c.direction > 0 ? 'carDriveRightPremium' : 'carDriveLeftPremium'} ${c.duration}s cubic-bezier(0.4, 0, 0.6, 1) ${c.delay}s infinite`,
-              transform: c.direction < 0 ? 'scaleX(-1)' : 'none',
+              animation: `${c.direction === 'right' ? 'carDriveRightPremium' : 'carDriveLeftPremium'} ${c.duration}s linear ${c.delay}s infinite`,
               willChange: 'transform',
             }}
           >
@@ -134,12 +127,15 @@ const MovingCars = ({ count = 6 }) => {
 
       <style>{`
         @keyframes carDriveRightPremium {
-          0%   { transform: translateX(-50vw); }
-          100% { transform: translateX(150vw); }
+          0%   { transform: translateX(-24vw); }
+          100% { transform: translateX(124vw); }
         }
         @keyframes carDriveLeftPremium {
-          0%   { transform: translateX(150vw) scaleX(-1); }
-          100% { transform: translateX(-50vw) scaleX(-1); }
+          0%   { transform: translateX(124vw) scaleX(-1); }
+          100% { transform: translateX(-24vw) scaleX(-1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .moving-car { animation: none !important; }
         }
       `}</style>
     </div>
@@ -153,6 +149,8 @@ const styles = {
     pointerEvents: 'none',
     zIndex: 0,
     overflow: 'hidden',
+    opacity: 0.8,
+    maskImage: 'linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent)',
   },
 };
 
