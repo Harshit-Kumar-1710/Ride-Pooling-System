@@ -15,7 +15,7 @@ const isValidEmailFormat = (email) => {
 
 const register = async (req, res) => {
   try {
-    const { collegeId, name, email, personalEmail, password } = req.body;
+    const { collegeId, name, email, personalEmail, password, campus } = req.body;
 
     if (!collegeId || !name || !email || !personalEmail || !password) {
       return res.status(400).json({ message: 'All fields are required.' });
@@ -48,7 +48,8 @@ const register = async (req, res) => {
       name,
       email: email.toLowerCase(),
       personalEmail: personalEmail.toLowerCase(),
-      password: hashedPassword
+      password: hashedPassword,
+      campus: campus || 'Graphic Era Deemed to be University, Dehradun'
     });
 
     const token = jwt.sign(
@@ -70,6 +71,7 @@ const register = async (req, res) => {
             <p style="color: #8888aa; font-size: 1.05rem; text-align: center; margin-bottom: 2rem;">Your account has been successfully created.</p>
             <div style="background: #111120; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #1a1a30;">
               <p style="margin: 0 0 10px 0; color: #f5f5ff;"><strong>College ID:</strong> ${user.collegeId}</p>
+              <p style="margin: 0 0 10px 0; color: #f5f5ff;"><strong>Campus:</strong> ${user.campus}</p>
               <p style="margin: 0; color: #f5f5ff;"><strong>Personal Email:</strong> ${user.personalEmail}</p>
             </div>
             <p style="color: #8888aa; text-align: center; line-height: 1.6;">You can now start finding and offering rides with fellow GEU students. Save money, travel safe, and earn credits!</p>
@@ -92,6 +94,7 @@ const register = async (req, res) => {
         name: user.name,
         email: user.email,
         personalEmail: user.personalEmail,
+        campus: user.campus,
         credits: user.credits
       }
     });
@@ -136,6 +139,7 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         personalEmail: user.personalEmail,
+        campus: user.campus || 'Graphic Era Deemed to be University, Dehradun',
         credits: user.credits,
         rating: user.rating,
         totalRidesOffered: user.totalRidesOffered

@@ -44,6 +44,16 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 3.0
   },
+  campus: {
+    type: String,
+    enum: [
+      'Graphic Era Deemed to be University, Dehradun',
+      'Graphic Era Hill University, Dehradun',
+      'Graphic Era Hill University, Bhimtal',
+      'Graphic Era University, Haldwani'
+    ],
+    default: 'Graphic Era Deemed to be University, Dehradun'
+  },
   totalRidesOffered: {
     type: Number,
     default: 0

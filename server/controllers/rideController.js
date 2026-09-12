@@ -6,6 +6,38 @@ const { scoreRide }                    = require('../services/scoringService');
 const { awardCredits }                 = require('../services/creditService');
 const { sendRideCompleted, sendRideCancelledToPassengers } = require('../services/emailService');
 
+const GEU_CAMPUS_COORDS = [
+  { lat: 30.2729, lng: 78.0687 }, // GEU Dehradun
+  { lat: 30.2735, lng: 78.0695 }, // GEHU Dehradun
+  { lat: 29.3524, lng: 79.5530 }, // GEHU Bhimtal
+  { lat: 29.2150, lng: 79.5200 }, // GEU Haldwani
+];
+
+const getHaversineDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+const isGEUCampus = (loc) => {
+  if (!loc) return false;
+  const label = (loc.label || '').toLowerCase();
+  const keywords = ['graphic era', 'geu', 'gehu', 'clement town', 'hill university', '56087'];
+  if (keywords.some(k => label.includes(k))) return true;
+
+  if (loc.latitude && loc.longitude) {
+    const lat = parseFloat(loc.latitude);
+    const lng = parseFloat(loc.longitude);
+    return GEU_CAMPUS_COORDS.some(c => getHaversineDistanceKm(lat, lng, c.lat, c.lng) <= 3.5);
+  }
+  return false;
+};
+
 const postRide = async (req, res) => {
   try {
     const { origin, destination, departureTime, seatsAvailable, vehicle } = req.body;
@@ -14,6 +46,13 @@ const postRide = async (req, res) => {
 
     if (!vehicle || !vehicle.model || !vehicle.number || !vehicle.color || !vehicle.fuelType) {
       return res.status(400).json({ message: 'Compulsory vehicle details (Model, Plate Number, Color, Fuel Type) are required.' });
+    }
+
+    // Option A Policy Enforcement: Ride MUST include a Graphic Era campus as origin or destination
+    if (!isGEUCampus(origin) && !isGEUCampus(destination)) {
+      return res.status(400).json({
+        message: 'College Policy Violation: Either Pickup or Dropoff MUST be a Graphic Era Campus (GEU Dehradun, GEHU Dehradun, GEHU Bhimtal, or GEU Haldwani).'
+      });
     }
 
     const ride = await Ride.create({

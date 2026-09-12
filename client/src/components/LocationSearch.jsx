@@ -1,32 +1,53 @@
 import { useState, useRef, useEffect } from 'react';
 import { getKnownLocations } from '../utils/nlpParser';
 
-// Known local landmarks with coordinates
+// Known local landmarks with coordinates in Uttarakhand
 const POPULAR_UTTARAKHAND_LOCATIONS = [
   { label: 'Graphic Era University, Dehradun', lat: 30.2729, lon: 78.0687, type: 'university' },
   { label: 'Graphic Era Hill University, Dehradun', lat: 30.2735, lon: 78.0695, type: 'university' },
+  { label: 'Graphic Era Hill University, Bhimtal', lat: 29.3524, lon: 79.5530, type: 'university' },
+  { label: 'Graphic Era University, Haldwani Campus', lat: 29.2150, lon: 79.5200, type: 'university' },
   { label: 'ISBT Dehradun, Transport Nagar', lat: 30.3275, lon: 78.0420, type: 'bus_station' },
   { label: 'Dehradun Railway Station', lat: 30.3181, lon: 78.0367, type: 'railway_station' },
   { label: 'Jolly Grant Airport, Dehradun', lat: 30.1893, lon: 78.1803, type: 'airport' },
   { label: 'Clock Tower, Rajpur Road, Dehradun', lat: 30.3255, lon: 78.0438, type: 'landmark' },
   { label: 'Rispana Bridge, Dehradun', lat: 30.3050, lon: 78.0330, type: 'landmark' },
+  { label: 'Ballupur Chowk, Dehradun', lat: 30.3340, lon: 78.0120, type: 'landmark' },
   { label: 'Pacific Mall, Rajpur Road, Dehradun', lat: 30.3155, lon: 78.0002, type: 'mall' },
   { label: 'Prem Nagar, Dehradun', lat: 30.2880, lon: 78.0080, type: 'area' },
   { label: 'Clement Town, Dehradun', lat: 30.2835, lon: 78.0200, type: 'area' },
+  { label: 'Sahastradhara, Dehradun', lat: 30.3872, lon: 78.1316, type: 'landmark' },
+  { label: 'FRI (Forest Research Institute), Dehradun', lat: 30.3417, lon: 77.9982, type: 'university' },
+  { label: 'IT Park, Sahastradhara Road, Dehradun', lat: 30.3605, lon: 78.0820, type: 'area' },
   { label: 'UPES Dehradun, Bidholi Campus', lat: 30.2780, lon: 78.0960, type: 'university' },
   { label: 'DIT University, Mussoorie Diversion', lat: 30.2665, lon: 78.0900, type: 'university' },
-  { label: 'Mussoorie, Uttarakhand', lat: 30.4598, lon: 78.0644, type: 'city' },
-  { label: 'Rishikesh, Uttarakhand', lat: 30.0869, lon: 78.2676, type: 'city' },
-  { label: 'Haridwar, Uttarakhand', lat: 29.9457, lon: 78.1642, type: 'city' },
-  { label: 'Roorkee, Uttarakhand', lat: 29.8543, lon: 77.8880, type: 'city' },
+  { label: 'Mussoorie Mall Road, Uttarakhand', lat: 30.4598, lon: 78.0644, type: 'city' },
+  { label: 'Dhanaulti, Tehri Garhwal', lat: 30.4542, lon: 78.2294, type: 'landmark' },
+  { label: 'Chakrata, Dehradun District', lat: 30.7016, lon: 77.8697, type: 'city' },
+  { label: 'Vikasnagar, Dehradun', lat: 30.4735, lon: 77.7712, type: 'city' },
+  { label: 'Rishikesh Bus Stand, Uttarakhand', lat: 30.0869, lon: 78.2676, type: 'bus_station' },
+  { label: 'Laxman Jhula, Rishikesh', lat: 30.1238, lon: 78.3274, type: 'landmark' },
+  { label: 'Haridwar Railway Station / ISBT', lat: 29.9457, lon: 78.1642, type: 'railway_station' },
+  { label: 'Har Ki Pauri, Haridwar', lat: 29.9567, lon: 78.1708, type: 'landmark' },
+  { label: 'Roorkee Bus Stand, Uttarakhand', lat: 29.8543, lon: 77.8880, type: 'bus_station' },
   { label: 'IIT Roorkee, Uttarakhand', lat: 29.8649, lon: 77.8965, type: 'university' },
-  { label: 'Haldwani, Nainital District', lat: 29.2183, lon: 79.5130, type: 'city' },
-  { label: 'Nainital, Uttarakhand', lat: 29.3919, lon: 79.4542, type: 'city' },
-  { label: 'Almora, Uttarakhand', lat: 29.5971, lon: 79.6591, type: 'city' },
-  { label: 'Pithoragarh, Uttarakhand', lat: 29.5829, lon: 80.2182, type: 'city' },
+  { label: 'Haldwani Bus Station, Nainital District', lat: 29.2183, lon: 79.5130, type: 'bus_station' },
+  { label: 'Pantnagar Airport / University', lat: 29.0222, lon: 79.4920, type: 'airport' },
+  { label: 'Nainital Mall Road, Uttarakhand', lat: 29.3919, lon: 79.4542, type: 'city' },
+  { label: 'Bhimtal Lake, Nainital District', lat: 29.3473, lon: 79.5574, type: 'landmark' },
+  { label: 'Ranikhet, Almora District', lat: 29.6434, lon: 79.4322, type: 'city' },
+  { label: 'Almora Town, Uttarakhand', lat: 29.5971, lon: 79.6591, type: 'city' },
+  { label: 'Kausani, Bageshwar District', lat: 29.8451, lon: 79.6026, type: 'landmark' },
+  { label: 'Pithoragarh City, Uttarakhand', lat: 29.5829, lon: 80.2182, type: 'city' },
   { label: 'Rudrapur, Udham Singh Nagar', lat: 28.9772, lon: 79.4005, type: 'city' },
   { label: 'Kashipur, Udham Singh Nagar', lat: 29.2104, lon: 78.9619, type: 'city' },
+  { label: 'Kotdwar, Pauri Garhwal', lat: 29.7466, lon: 78.5273, type: 'city' },
+  { label: 'Lansdowne, Pauri Garhwal', lat: 29.8377, lon: 78.6871, type: 'landmark' },
   { label: 'Srinagar Garhwal, Uttarakhand', lat: 30.2223, lon: 78.7844, type: 'city' },
+  { label: 'Tehri Garhwal / New Tehri', lat: 30.3780, lon: 78.4320, type: 'city' },
+  { label: 'Uttarkashi, Uttarakhand', lat: 30.7268, lon: 78.4432, type: 'city' },
+  { label: 'Gopeshwar / Chamoli', lat: 30.4077, lon: 79.3243, type: 'city' },
+  { label: 'Rudraprayag, Uttarakhand', lat: 30.2844, lon: 78.9811, type: 'city' },
 ];
 
 // Build a detailed, high-precision location label from Nominatim result
@@ -56,7 +77,7 @@ const LocationSearch = ({ placeholder, onSelect }) => {
     // Instant local matching from popular Uttarakhand dictionary
     const localMatches = q.length >= 1
       ? POPULAR_UTTARAKHAND_LOCATIONS.filter(item => item.label.toLowerCase().includes(q))
-      : POPULAR_UTTARAKHAND_LOCATIONS.slice(0, 6); // default top picks when clicking input
+      : POPULAR_UTTARAKHAND_LOCATIONS.slice(0, 8); // default top picks when clicking input
 
     setResults(localMatches);
 
@@ -143,25 +164,30 @@ const LocationSearch = ({ placeholder, onSelect }) => {
       </div>
       {focused && results.length > 0 && (
         <div style={styles.dropdown}>
-          {results.map((r, i) => (
-            <div
-              key={i}
-              style={styles.item}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              onClick={() => handleSelect(r)}
-            >
-              <span style={styles.pin}>{getIcon(r)}</span>
-              <div style={styles.itemText}>
-                <span style={styles.itemMain}>
-                  {r.display_name?.split(',').slice(0, 3).join(', ')}
-                </span>
-                <span style={styles.itemSub}>
-                  {r.display_name?.split(',').slice(3, 6).join(', ')}
-                </span>
+          {results.map((r, i) => {
+            const mainText = r.label || (r.display_name ? r.display_name.split(',').slice(0, 3).join(', ') : '');
+            const subText = r.display_name ? r.display_name.split(',').slice(3, 6).join(', ') : (r.type ? `${r.type.toUpperCase().replace('_', ' ')} • Uttarakhand` : 'Uttarakhand');
+
+            return (
+              <div
+                key={i}
+                style={styles.item}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                onClick={() => handleSelect(r)}
+              >
+                <span style={styles.pin}>{getIcon(r)}</span>
+                <div style={styles.itemText}>
+                  <span style={styles.itemMain}>
+                    {mainText}
+                  </span>
+                  <span style={styles.itemSub}>
+                    {subText}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

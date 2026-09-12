@@ -10,7 +10,14 @@ const Register = () => {
   const { login } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate  = useNavigate();
-  const [form, setForm]       = useState({ collegeId: '', name: '', email: '', personalEmail: '', password: '' });
+  const [form, setForm]       = useState({
+    collegeId: '',
+    name: '',
+    email: '',
+    personalEmail: '',
+    password: '',
+    campus: 'Graphic Era Deemed to be University, Dehradun'
+  });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -50,13 +57,13 @@ const Register = () => {
             <span style={styles.heroAccent}>RIDE.</span>
           </h1>
           <p style={styles.heroSub}>
-            Only GEU students can join. Verify with your college ID and GEU email to get started.
+            Exclusively for Graphic Era University students. Verify with your GEU college ID and campus to get started.
           </p>
           <div style={styles.steps}>
             {[
-              { n: '1', t: 'Register with your college ID' },
-              { n: '2', t: 'Offer or find a ride' },
-              { n: '3', t: 'Earn credits by driving' },
+              { n: '1', t: 'Register with GEU college ID & campus' },
+              { n: '2', t: 'Offer or find rides to/from campus' },
+              { n: '3', t: 'Earn credits & travel safely' },
             ].map((s, i) => (
               <div key={s.n} style={{ ...styles.step, animationDelay: `${0.5 + i * 0.15}s` }}>
                 <div style={styles.stepNum}>{s.n}</div>
@@ -72,11 +79,27 @@ const Register = () => {
       <div style={styles.right}>
         <div style={styles.card}>
           <h2 style={styles.title}>Create account</h2>
-          <p style={styles.sub}>Get started in seconds</p>
+          <p style={styles.sub}>GEU Student Verification</p>
 
           {error && <div style={styles.error}>{error}</div>}
 
           <form onSubmit={handleSubmit}>
+            <div style={styles.field}>
+              <label style={styles.label}>Graphic Era Campus</label>
+              <select
+                style={styles.input}
+                name="campus"
+                value={form.campus}
+                onChange={handleChange}
+                required
+              >
+                <option value="Graphic Era Deemed to be University, Dehradun">Graphic Era Deemed to be University (Dehradun Main)</option>
+                <option value="Graphic Era Hill University, Dehradun">Graphic Era Hill University (Dehradun Campus)</option>
+                <option value="Graphic Era Hill University, Bhimtal">Graphic Era Hill University (Bhimtal Campus)</option>
+                <option value="Graphic Era University, Haldwani">Graphic Era University (Haldwani Campus)</option>
+              </select>
+            </div>
+
             {[
               { name: 'collegeId',     label: 'College ID',     placeholder: 'e.g. 23021605',        type: 'text' },
               { name: 'name',          label: 'Full Name',      placeholder: 'Your full name',       type: 'text' },
