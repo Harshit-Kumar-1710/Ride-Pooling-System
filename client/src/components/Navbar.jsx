@@ -24,7 +24,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav style={styles.nav}>
+    <nav className="app-nav" style={styles.nav}>
       {/* Brand */}
       <Link to="/dashboard" style={styles.brand}>
         <span style={styles.brandText}>
@@ -34,7 +34,7 @@ const Navbar = () => {
 
       {/* Center Nav Links */}
       {user && (
-        <div style={styles.center}>
+        <div className="app-nav-links" style={styles.center}>
           {[
             { path: '/dashboard', label: 'Home' },
             { path: '/find-ride', label: 'Find Ride' },
@@ -58,7 +58,7 @@ const Navbar = () => {
       )}
 
       {/* Right Section */}
-      <div style={styles.right}>
+      <div className="app-nav-actions" style={styles.right}>
         {/* Theme Toggle */}
         <button onClick={toggleTheme} style={styles.themeToggle} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
           {theme === 'dark' ? '☀️' : '🌙'}

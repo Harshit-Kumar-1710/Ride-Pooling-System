@@ -50,7 +50,7 @@ const TrackRide = () => {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
+      <div className="app-page-container" style={styles.container}>
         <div style={styles.header}>
           <button style={styles.backBtn} onClick={() => navigate('/my-rides')}>← Back</button>
           <h2 style={styles.title}>
@@ -99,7 +99,7 @@ const TrackRide = () => {
           </div>
         )}
 
-        <div style={styles.grid}>
+        <div className="ride-workspace" style={styles.grid}>
           <div style={styles.leftPanel}>
             <div style={{ ...styles.card, animationDelay: '0.1s' }}>
               <p style={styles.sectionLabel}>Route</p>

@@ -105,7 +105,7 @@ const RideDetail = () => {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
+      <div className="app-page-container" style={styles.container}>
         <div style={styles.header}>
           <button style={styles.backBtn} onClick={() => navigate('/find-ride')}>← Back</button>
           <h2 style={styles.title}>Ride Details</h2>
@@ -122,7 +122,7 @@ const RideDetail = () => {
             </div>
           </div>
         ) : (
-          <div style={styles.grid}>
+          <div className="ride-workspace" style={styles.grid}>
             {/* Left — details */}
             <div style={styles.leftPanel}>
               {/* Route */}
@@ -147,7 +147,7 @@ const RideDetail = () => {
               </div>
 
               {/* Info grid */}
-              <div style={styles.infoGrid}>
+              <div className="detail-info-grid" style={styles.infoGrid}>
                 {[
                   { label: 'Departure',  value: formatTime(ride.departureTime), icon: '🕐' },
                   { label: 'Seats left', value: `${ride.seatsAvailable} / ${ride.seatsTotal}`, icon: '💺' },

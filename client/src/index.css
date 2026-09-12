@@ -706,6 +706,14 @@ div[style*="seatsRow"] button {
 }
 
 @media (max-width: 760px) {
+  .app-page-container {
+    padding: 1.15rem !important;
+  }
+
+  .app-page-container > div:first-child {
+    margin-bottom: 1.1rem !important;
+  }
+
   .trust-grid {
     grid-template-columns: 1fr !important;
   }
@@ -718,4 +726,75 @@ div[style*="seatsRow"] button {
   .trust-grid > div:last-child {
     border-bottom: 0;
   }
+}
+
+/* Reliable responsive layouts for the logged-in app. These class selectors
+   deliberately avoid matching inline style serialization. */
+@media (max-width: 1024px) {
+  .dashboard-hero {
+    padding: 3.25rem 2rem 3.5rem !important;
+    gap: 2rem !important;
+  }
+
+  .dashboard-actions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .dashboard-rides { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .ride-workspace {
+    grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1fr) !important;
+    gap: 1rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-nav {
+    padding: 0.55rem 0.9rem !important;
+    min-height: 58px !important;
+    gap: 0.6rem;
+  }
+
+  .app-nav-links {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0.15rem 0 0.35rem;
+  }
+
+  .app-nav-links::-webkit-scrollbar { display: none; }
+  .app-nav-actions { margin-left: auto; }
+  .app-nav .creditsLabel, .app-nav .logoutBtn { display: none; }
+
+  .dashboard-hero {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 2.75rem 1.15rem 2rem !important;
+  }
+
+  .dashboard-hero > div:last-child { display: none; }
+  .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; padding: 1.25rem 1rem !important; gap: 1.25rem 0 !important; }
+  .dashboard-actions, .dashboard-rides { grid-template-columns: 1fr !important; }
+
+  .ride-workspace {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .workspace-panel { overflow: visible !important; }
+  .ride-workspace > *:last-child { min-height: 340px !important; height: min(55vh, 440px) !important; }
+  .compact-input-row { flex-wrap: wrap; }
+  .compact-input-row input { min-width: 0; flex: 1 1 220px; }
+  .seat-picker { flex-wrap: wrap; }
+  .detail-info-grid { grid-template-columns: 1fr !important; }
+
+  .ride-tabs { overflow-x: auto; padding: 4px !important; }
+  .ride-tabs button { min-width: max-content; }
+  .ride-card-actions { display: grid !important; grid-template-columns: 1fr 1fr; }
+  .ride-card-actions button:first-child { grid-column: 1 / -1; }
+}
+
+@media (max-width: 420px) {
+  .dashboard-hero { padding-inline: 1rem !important; }
+  .dashboard-hero h1 { font-size: clamp(2.25rem, 13vw, 3.2rem) !important; }
+  .ride-card-actions { grid-template-columns: 1fr !important; }
+  .ride-card-actions button:first-child { grid-column: auto; }
 }

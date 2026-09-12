@@ -141,20 +141,20 @@ const FindRide = () => {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
+      <div className="app-page-container" style={styles.container}>
         <div style={styles.header}>
           <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>← Back</button>
           <h2 style={styles.title}>Find a Ride</h2>
         </div>
 
-        <div style={styles.grid}>
+        <div className="ride-workspace" style={styles.grid}>
           {/* Left panel */}
-          <div style={styles.leftPanel}>
+          <div className="workspace-panel" style={styles.leftPanel}>
             <div style={styles.formCard}>
               {/* NLP Smart Search */}
               <div style={styles.nlpSection}>
                 <label style={styles.nlpLabel}>🧠 Smart Search</label>
-                <div style={styles.nlpRow}>
+                <div className="compact-input-row" style={styles.nlpRow}>
                   <input
                     style={styles.nlpInput}
                     placeholder='Try: "GEU to ISBT tomorrow 9am"'

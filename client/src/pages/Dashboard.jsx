@@ -31,7 +31,7 @@ const Dashboard = () => {
       <MovingCars count={6} />
 
       {/* ── Hero Section ── */}
-      <section style={styles.heroSection}>
+      <section className="dashboard-hero" style={styles.heroSection}>
         <div style={styles.heroInner}>
           <p style={styles.heroTag}>
             <span style={styles.dash}>——</span> WELCOME BACK, {user?.name?.split(' ')[0]?.toUpperCase()}
@@ -67,7 +67,7 @@ const Dashboard = () => {
       </section>
 
       {/* ── Stats Bar ── */}
-      <section style={styles.statsBar}>
+      <section className="dashboard-stats" style={styles.statsBar}>
         {[
           { num: `⚡ ${user?.credits ?? 0}`, label: 'CREDITS EARNED' },
           { num: (user?.totalRidesOffered > 0) ? `${user?.rating ?? '—'}/5` : 'N/A', label: 'YOUR RATING' },
@@ -89,7 +89,7 @@ const Dashboard = () => {
         <h2 style={styles.sectionTitle}>
           WHAT DO YOU <span style={styles.heroItalic}>NEED?</span>
         </h2>
-        <div style={styles.actionsGrid}>
+        <div className="dashboard-actions" style={styles.actionsGrid}>
           {[
             { icon: '🚗', title: 'Offer a ride', desc: 'Share your route, choose seats, and help fellow students get there.', path: '/offer-ride' },
             { icon: '⌕', title: 'Find a ride', desc: 'Search by route and time to discover a ride that fits your day.', path: '/find-ride' },
@@ -130,7 +130,7 @@ const Dashboard = () => {
         </h2>
 
         {loadingRec ? (
-          <div style={styles.recGrid}>
+          <div className="dashboard-rides" style={styles.recGrid}>
             {[1,2,3].map(i => (
               <div key={i} style={styles.shimmerCard} />
             ))}
@@ -144,7 +144,7 @@ const Dashboard = () => {
             </button>
           </div>
         ) : (
-          <div style={styles.recGrid}>
+          <div className="dashboard-rides" style={styles.recGrid}>
             {recommended.map((ride, i) => (
               <div
                 key={ride._id}

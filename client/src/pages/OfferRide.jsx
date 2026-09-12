@@ -149,15 +149,15 @@ const OfferRide = () => {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
+      <div className="app-page-container" style={styles.container}>
         <div style={styles.header}>
           <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>← Back</button>
           <h2 style={styles.title}>Offer a Ride</h2>
         </div>
 
-        <div style={styles.grid}>
+        <div className="ride-workspace" style={styles.grid}>
           {/* Left — form */}
-          <div style={styles.formPanel}>
+          <div className="workspace-panel" style={styles.formPanel}>
             <div style={styles.stepIndicator}>
               <div style={{ ...styles.stepDot, background: step === 'origin' ? 'var(--green)' : 'var(--accent)', boxShadow: step === 'origin' ? '0 0 10px var(--green)' : 'none' }} />
               <div style={styles.stepLine} />
@@ -166,7 +166,7 @@ const OfferRide = () => {
 
             <div style={styles.section}>
               <label style={styles.nlpLabel}>🧠 Smart Fill</label>
-              <div style={styles.nlpRow}>
+              <div className="compact-input-row" style={styles.nlpRow}>
                 <input
                   style={styles.nlpInput}
                   placeholder='Try: "GEU to ISBT tomorrow 9am"'
@@ -227,7 +227,7 @@ const OfferRide = () => {
 
             <div style={styles.section}>
               <label style={styles.label}>Seats available</label>
-              <div style={styles.seatsRow}>
+              <div className="seat-picker" style={styles.seatsRow}>
                 {[1,2,3,4,5,6].map(n => (
                   <button key={n} type="button"
                     style={{ ...styles.seatBtn, ...(form.seatsAvailable == n ? styles.seatBtnActive : {}) }}

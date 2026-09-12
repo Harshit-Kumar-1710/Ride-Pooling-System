@@ -72,7 +72,7 @@ const MyRides = () => {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
+      <div className="app-page-container" style={styles.container}>
         <div style={styles.header}>
           <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>← Back</button>
           <h2 style={styles.title}>My Rides</h2>
@@ -85,7 +85,7 @@ const MyRides = () => {
           </div>
         )}
 
-        <div style={styles.tabs}>
+        <div className="ride-tabs" style={styles.tabs}>
           <button style={{ ...styles.tab, ...(tab === 'offered' ? styles.tabActive : {}) }}
             onClick={() => setTab('offered')}>
             🚗 Rides I Offered ({offered.length})
@@ -131,7 +131,7 @@ const MyRides = () => {
                 )}
 
                 {(ride.status === 'open' || ride.status === 'full') && (
-                  <div style={styles.btnRow}>
+                  <div className="ride-card-actions" style={styles.btnRow}>
                     <button style={styles.completeBtn} onClick={() => handleComplete(ride._id)}>✓ Complete</button>
                     <button style={styles.trackBtn} onClick={() => navigate(`/track/${ride._id}`)}>Track</button>
                     <button style={styles.cancelBtn} onClick={() => handleCancel(ride._id)}>Cancel</button>
@@ -187,7 +187,7 @@ const MyRides = () => {
                   )}
                 </div>
                 {booking.status === 'confirmed' && (
-                  <div style={styles.btnRow}>
+                  <div className="ride-card-actions" style={styles.btnRow}>
                     <button style={styles.trackBtn} onClick={() => navigate(`/track/${booking.rideId?._id}`)}>💬 Track & Chat</button>
                     <button style={styles.cancelBtn} onClick={() => handleCancelBooking(booking._id)}>Cancel</button>
                   </div>
