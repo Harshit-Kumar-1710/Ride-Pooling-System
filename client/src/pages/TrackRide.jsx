@@ -150,6 +150,58 @@ const TrackRide = () => {
                 <p style={{ ...styles.infoText, color: booking.status === 'confirmed' ? 'var(--green)' : 'var(--red)', marginTop: '0.5rem', fontWeight: '600' }}>
                   Status: {booking.status}
                 </p>
+                {booking.status === 'confirmed' && ride.status !== 'completed' && (
+                  <button
+                    style={{ marginTop: '0.8rem', width: '100%', padding: '0.55rem', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.83rem', fontWeight: '600' }}
+                    onClick={async () => {
+                      if (window.confirm('Are you sure you want to cancel your booking?')) {
+                        try {
+                          await API.delete(`/bookings/${booking._id}`);
+                          alert('Booking cancelled successfully. Seat freed up for others.');
+                          navigate('/my-rides');
+                        } catch (err) {
+                          alert(err.response?.data?.message || 'Failed to cancel booking');
+                        }
+                      }
+                    }}
+                  >
+                    🚫 Cancel Booking
+                  </button>
+                )}
+              </div>
+            )}
+
+            {isDriver && (ride.status === 'open' || ride.status === 'full') && (
+              <div style={{ ...styles.card, animationDelay: '0.35s' }}>
+                <p style={styles.sectionLabel}>Ride Actions</p>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    style={{ flex: 1, padding: '0.6rem', background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: '600', fontSize: '0.83rem' }}
+                    onClick={async () => {
+                      try {
+                        await API.patch(`/rides/${id}/complete`);
+                        alert('Ride completed successfully!');
+                        navigate('/my-rides');
+                      } catch (err) { alert(err.response?.data?.message || 'Failed to complete ride'); }
+                    }}
+                  >
+                    ✓ Complete Ride
+                  </button>
+                  <button
+                    style={{ flex: 1, padding: '0.6rem', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: '600', fontSize: '0.83rem' }}
+                    onClick={async () => {
+                      if (window.confirm('Are you sure you want to cancel this ride? All confirmed passengers will be notified by email.')) {
+                        try {
+                          await API.patch(`/rides/${id}/cancel`);
+                          alert('Ride cancelled.');
+                          navigate('/my-rides');
+                        } catch (err) { alert(err.response?.data?.message || 'Failed to cancel ride'); }
+                      }
+                    }}
+                  >
+                    🚫 Cancel Ride
+                  </button>
+                </div>
               </div>
             )}
 
