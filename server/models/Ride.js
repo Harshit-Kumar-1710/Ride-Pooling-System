@@ -19,6 +19,12 @@ const rideSchema = new mongoose.Schema({
   departureTime:  { type: Date, required: true },
   seatsAvailable: { type: Number, required: true, min: 1, max: 6 },
   seatsTotal:     { type: Number, required: true },
+  vehicle: {
+    model:  { type: String, required: true, trim: true },
+    number: { type: String, required: true, trim: true, uppercase: true },
+    color:  { type: String, required: true, trim: true },
+    type:   { type: String, enum: ['Car', 'Bike', 'Scooter', 'Other'], default: 'Car' }
+  },
   status: {
     type: String,
     enum: ['open', 'full', 'completed', 'cancelled'],

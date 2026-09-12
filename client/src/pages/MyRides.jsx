@@ -113,7 +113,21 @@ const MyRides = () => {
                 <div style={styles.meta}>
                   <span style={styles.chip}>🕐 {formatTime(ride.departureTime)}</span>
                   <span style={styles.chip}>💺 {ride.seatsAvailable}/{ride.seatsTotal} seats</span>
+                  {ride.vehicle && <span style={styles.chip}>🚗 {ride.vehicle.model} ({ride.vehicle.number})</span>}
                 </div>
+
+                {/* Driver view: Booked Passengers roster */}
+                {ride.passengers && ride.passengers.length > 0 && (
+                  <div style={{ marginTop: '0.6rem', padding: '0.6rem 0.8rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                    <p style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '0.3rem' }}>👥 Booked Passengers ({ride.passengers.length})</p>
+                    {ride.passengers.map((p, idx) => (
+                      <div key={p.bookingId || idx} style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>
+                        • <strong>{p.name}</strong> ({p.collegeId || 'Verified'}) {p.email ? `— 📧 ${p.email}` : ''}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {(ride.status === 'open' || ride.status === 'full') && (
                   <div style={styles.btnRow}>
                     <button style={styles.completeBtn} onClick={() => handleComplete(ride._id)}>✓ Complete</button>
@@ -148,6 +162,23 @@ const MyRides = () => {
                 <div style={styles.meta}>
                   <span style={styles.chip}>📍 Pickup: {booking.pickupPoint?.label}</span>
                   <span style={styles.chip}>📍 Drop: {booking.dropPoint?.label}</span>
+                </div>
+
+                {/* Passenger view: Driver & Vehicle Details */}
+                <div style={{ marginTop: '0.6rem', padding: '0.6rem 0.8rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                  <p style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                    👤 Driver: {booking.rideId?.driverId?.name || 'Assigned Driver'} ({booking.rideId?.driverId?.collegeId || 'GEU Verified'})
+                  </p>
+                  {booking.rideId?.driverId?.email && (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      📧 Contact: {booking.rideId.driverId.email} {booking.rideId?.driverId?.personalEmail ? `/ ${booking.rideId.driverId.personalEmail}` : ''}
+                    </p>
+                  )}
+                  {booking.rideId?.vehicle && (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: '600', marginTop: '0.2rem' }}>
+                      🚗 Vehicle: {booking.rideId.vehicle.model} | {booking.rideId.vehicle.number} ({booking.rideId.vehicle.color})
+                    </p>
+                  )}
                 </div>
                 {booking.status === 'confirmed' && (
                   <div style={styles.btnRow}>

@@ -42,6 +42,7 @@ const RideDetail = () => {
   const [error, setError]     = useState('');
   const [booked, setBooked]   = useState(false);
   const [route, setRoute]     = useState(null);
+  const [eta, setEta]         = useState(null);
 
   const formatTime = (dt) => new Date(dt).toLocaleString('en-IN', {
     weekday: 'short', day: '2-digit', month: 'short',
@@ -59,6 +60,9 @@ const RideDetail = () => {
         if (data.routes?.[0]) {
           const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
           setRoute(coords);
+          const durationMins = Math.round(data.routes[0].duration / 60);
+          const distanceKm   = (data.routes[0].distance / 1000).toFixed(1);
+          setEta({ durationMins, distanceKm });
         }
       } catch { }
     };
@@ -145,8 +149,8 @@ const RideDetail = () => {
                 {[
                   { label: 'Departure',  value: formatTime(ride.departureTime), icon: '🕐' },
                   { label: 'Seats left', value: `${ride.seatsAvailable} / ${ride.seatsTotal}`, icon: '💺' },
-                  { label: 'Detour',     value: `${ride.detourDistance ?? 0} km`, icon: '📍' },
-                  { label: 'Rating',     value: `${ride.driverId?.rating ?? 3}/5`, icon: '⭐' },
+                  { label: 'Travel Time (ETA)', value: eta ? `~${eta.durationMins} mins (${eta.distanceKm} km)` : 'Calculating...', icon: '⏱️' },
+                  { label: 'Driver Rating', value: `${ride.driverId?.rating ?? 3}/5`, icon: '⭐' },
                 ].map((item, i) => (
                   <div key={item.label} style={{ ...styles.infoCard, animationDelay: `${0.2 + i * 0.06}s` }}>
                     <div style={styles.infoIcon}>{item.icon}</div>
@@ -156,17 +160,44 @@ const RideDetail = () => {
                 ))}
               </div>
 
-              {/* Driver */}
+              {/* Driver Details */}
               <div style={{ ...styles.card, animationDelay: '0.4s' }}>
-                <p style={styles.sectionLabel}>Driver</p>
+                <p style={styles.sectionLabel}>Driver Details</p>
                 <div style={styles.driverRow}>
                   <div style={styles.driverAvatar}>{ride.driverId?.name?.charAt(0).toUpperCase()}</div>
                   <div>
                     <p style={styles.driverName}>{ride.driverId?.name}</p>
-                    <p style={styles.driverId}>{ride.driverId?.collegeId} · GEU verified</p>
+                    <p style={styles.driverId}>College ID: {ride.driverId?.collegeId || 'N/A'}</p>
+                    {ride.driverId?.email && <p style={styles.driverContact}>📧 {ride.driverId.email}</p>}
+                    {ride.driverId?.personalEmail && <p style={styles.driverContact}>📩 {ride.driverId.personalEmail}</p>}
                   </div>
                 </div>
               </div>
+
+              {/* Compulsory Vehicle Details */}
+              {ride.vehicle && (
+                <div style={{ ...styles.card, animationDelay: '0.45s', borderLeft: '3px solid var(--accent)' }}>
+                  <p style={styles.sectionLabel}>🚗 Compulsory Vehicle Details</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.4rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>MODEL</span>
+                      <p style={{ fontWeight: '700', fontSize: '0.92rem' }}>{ride.vehicle.model}</p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>PLATE NUMBER</span>
+                      <p style={{ fontWeight: '700', fontSize: '0.92rem', color: 'var(--accent)' }}>{ride.vehicle.number}</p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>COLOR</span>
+                      <p style={{ fontWeight: '600', fontSize: '0.88rem' }}>{ride.vehicle.color}</p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TYPE</span>
+                      <p style={{ fontWeight: '600', fontSize: '0.88rem' }}>{ride.vehicle.type}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Your pickup/drop */}
               {pickup && drop && (

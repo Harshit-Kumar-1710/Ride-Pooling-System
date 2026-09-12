@@ -3,17 +3,21 @@ import { Link } from 'react-router-dom';
 import { forgotPassword } from '../services/api';
 
 const ForgotPassword = () => {
-  const [email, setEmail]     = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
-  const [sent, setSent]       = useState(false);
+  const [collegeId, setCollegeId] = useState('');
+  const [email, setEmail]         = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
+  const [sent, setSent]           = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!collegeId.trim() || !email.trim()) {
+      return setError('Please enter both College ID and Personal Email.');
+    }
     setLoading(true);
     setError('');
     try {
-      await forgotPassword({ email });
+      await forgotPassword({ collegeId: collegeId.trim(), email: email.trim() });
       setSent(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send reset link');
@@ -67,11 +71,22 @@ const ForgotPassword = () => {
           ) : (
             <>
               <h2 style={styles.title}>Reset password</h2>
-              <p style={styles.sub}>Enter the personal email you used during registration</p>
+              <p style={styles.sub}>Enter your College ID and personal email address to receive a reset link</p>
 
               {error && <div style={styles.error}>{error}</div>}
 
               <form onSubmit={handleSubmit}>
+                <div style={styles.field}>
+                  <label style={styles.label}>College ID</label>
+                  <input
+                    style={styles.input}
+                    type="text"
+                    placeholder="e.g. 21011234 or GEU/1234"
+                    value={collegeId}
+                    onChange={(e) => setCollegeId(e.target.value)}
+                    required
+                  />
+                </div>
                 <div style={styles.field}>
                   <label style={styles.label}>Personal Email</label>
                   <input

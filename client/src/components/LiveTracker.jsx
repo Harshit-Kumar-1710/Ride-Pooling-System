@@ -14,7 +14,8 @@ const LiveTracker = ({ rideId, userId }) => {
       return;
     }
 
-    socketRef.current = io('http://localhost:5000');
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://ride-pooling-system.onrender.com';
+    socketRef.current = io(SOCKET_URL);
     socketRef.current.emit('driver:join', { rideId, driverId: userId });
     socketRef.current.emit('ride:started', { rideId });
 

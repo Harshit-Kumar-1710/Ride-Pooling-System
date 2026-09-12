@@ -8,9 +8,13 @@ const { sendRideCompleted, sendRideCancelledToPassengers } = require('../service
 
 const postRide = async (req, res) => {
   try {
-    const { origin, destination, departureTime, seatsAvailable } = req.body;
+    const { origin, destination, departureTime, seatsAvailable, vehicle } = req.body;
     if (!origin || !destination || !departureTime || !seatsAvailable)
-      return res.status(400).json({ message: 'All fields are required.' });
+      return res.status(400).json({ message: 'All ride fields are required.' });
+
+    if (!vehicle || !vehicle.model || !vehicle.number || !vehicle.color) {
+      return res.status(400).json({ message: 'Compulsory vehicle details (Model, Plate Number, Color) are required.' });
+    }
 
     const ride = await Ride.create({
       driverId: req.user.id,
@@ -18,7 +22,13 @@ const postRide = async (req, res) => {
       destination,
       departureTime,
       seatsAvailable,
-      seatsTotal: seatsAvailable
+      seatsTotal: seatsAvailable,
+      vehicle: {
+        model: vehicle.model,
+        number: vehicle.number.toUpperCase(),
+        color: vehicle.color,
+        type: vehicle.type || 'Car'
+      }
     });
 
     res.status(201).json({ message: 'Ride posted successfully.', ride });
@@ -31,7 +41,7 @@ const postRide = async (req, res) => {
 const getAllRides = async (req, res) => {
   try {
     const rides = await Ride.find({ status: 'open' })
-      .populate('driverId', 'name collegeId rating')
+      .populate('driverId', 'name collegeId email personalEmail rating')
       .sort({ departureTime: 1 });
     res.status(200).json({ rides });
   } catch (err) {
@@ -42,9 +52,27 @@ const getAllRides = async (req, res) => {
 const getMyRides = async (req, res) => {
   try {
     const rides = await Ride.find({ driverId: req.user.id })
-      .sort({ createdAt: -1 });
-    res.status(200).json({ rides });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Attach confirmed passengers for each ride offered by this driver
+    const ridesWithPassengers = await Promise.all(
+      rides.map(async (ride) => {
+        const bookings = await Booking.find({ rideId: ride._id, status: 'confirmed' })
+          .populate('passengerId', 'name collegeId email personalEmail rating');
+        const passengers = bookings.map(b => ({
+          bookingId: b._id,
+          pickupPoint: b.pickupPoint,
+          dropPoint: b.dropPoint,
+          ...(b.passengerId ? b.passengerId.toObject() : {})
+        }));
+        return { ...ride, passengers };
+      })
+    );
+
+    res.status(200).json({ rides: ridesWithPassengers });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error.' });
   }
 };
@@ -52,9 +80,20 @@ const getMyRides = async (req, res) => {
 const getRideById = async (req, res) => {
   try {
     const ride = await Ride.findById(req.params.id)
-      .populate('driverId', 'name collegeId rating');
+      .populate('driverId', 'name collegeId email personalEmail rating');
     if (!ride) return res.status(404).json({ message: 'Ride not found.' });
-    res.status(200).json({ ride });
+
+    const bookings = await Booking.find({ rideId: ride._id, status: 'confirmed' })
+      .populate('passengerId', 'name collegeId email personalEmail rating');
+
+    const passengers = bookings.map(b => ({
+      bookingId: b._id,
+      pickupPoint: b.pickupPoint,
+      dropPoint: b.dropPoint,
+      ...(b.passengerId ? b.passengerId.toObject() : {})
+    }));
+
+    res.status(200).json({ ride: { ...ride.toObject(), passengers } });
   } catch (err) {
     res.status(500).json({ message: 'Server error.' });
   }
@@ -157,7 +196,7 @@ const searchRides = async (req, res) => {
     const openRides = await Ride.find({
       status: 'open',
       seatsAvailable: { $gt: 0 }
-    }).populate('driverId', 'name collegeId rating');
+    }).populate('driverId', 'name collegeId email personalEmail rating');
 
     // Route matching
     const matchedRides = openRides.filter(ride => {
@@ -219,7 +258,7 @@ const getRecommendedRides = async (req, res) => {
       seatsAvailable: { $gt: 0 },
       driverId: { $ne: req.user.id }
     })
-      .populate('driverId', 'name collegeId rating')
+      .populate('driverId', 'name collegeId email personalEmail rating')
       .sort({ departureTime: 1 })
       .limit(5);
 

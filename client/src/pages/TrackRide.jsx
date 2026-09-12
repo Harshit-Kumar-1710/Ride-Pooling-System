@@ -69,15 +69,36 @@ const TrackRide = () => {
             </div>
 
             <div style={{ ...styles.card, animationDelay: '0.2s' }}>
-              <p style={styles.sectionLabel}>Driver</p>
+              <p style={styles.sectionLabel}>Driver Details</p>
               <div style={styles.driverRow}>
                 <div style={styles.avatar}>{ride.driverId?.name?.charAt(0)}</div>
                 <div>
                   <p style={styles.driverName}>{ride.driverId?.name}</p>
-                  <p style={styles.driverId}>{ride.driverId?.collegeId}</p>
+                  <p style={styles.driverId}>College ID: {ride.driverId?.collegeId || 'GEU Verified'}</p>
+                  {ride.driverId?.email && <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>📧 {ride.driverId.email}</p>}
                 </div>
               </div>
+              {ride.vehicle && (
+                <div style={{ marginTop: '0.8rem', padding: '0.6rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                  <p style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--accent)' }}>🚗 Vehicle Details</p>
+                  <p style={{ fontSize: '0.82rem', fontWeight: '600', marginTop: '0.2rem' }}>{ride.vehicle.model} ({ride.vehicle.number})</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Color: {ride.vehicle.color} • Type: {ride.vehicle.type}</p>
+                </div>
+              )}
             </div>
+
+            {/* If Driver, show passenger roster */}
+            {isDriver && ride.passengers && ride.passengers.length > 0 && (
+              <div style={{ ...styles.card, animationDelay: '0.25s' }}>
+                <p style={styles.sectionLabel}>👥 Passenger Roster ({ride.passengers.length})</p>
+                {ride.passengers.map((p, idx) => (
+                  <div key={p.bookingId || idx} style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: idx < ride.passengers.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                    <p style={{ fontSize: '0.85rem', fontWeight: '700' }}>{p.name}</p>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>ID: {p.collegeId || 'Verified'} {p.email ? `• 📧 ${p.email}` : ''}</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {isDriver && (
               <LiveTracker rideId={id} userId={user._id} />

@@ -163,14 +163,17 @@ const getMe = async (req, res) => {
 // ── Forgot Password ──
 const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required.' });
+    const { collegeId, email } = req.body;
+    if (!collegeId || !email) {
+      return res.status(400).json({ message: 'Both College ID and Personal Email are required.' });
     }
 
-    const user = await User.findOne({ personalEmail: email.toLowerCase() });
+    const user = await User.findOne({
+      collegeId: collegeId.toUpperCase().trim(),
+      personalEmail: email.toLowerCase().trim()
+    });
     if (!user) {
-      return res.status(404).json({ message: 'No account found with this personal email.' });
+      return res.status(404).json({ message: 'No account found matching this College ID and Personal Email combination.' });
     }
 
     // Generate reset token (JWT, 15min expiry)

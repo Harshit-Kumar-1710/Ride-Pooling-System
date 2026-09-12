@@ -88,7 +88,13 @@ const cancelBooking = async (req, res) => {
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ passengerId: req.user.id })
-      .populate('rideId')
+      .populate({
+        path: 'rideId',
+        populate: {
+          path: 'driverId',
+          select: 'name collegeId email personalEmail rating'
+        }
+      })
       .sort({ createdAt: -1 });
     res.status(200).json({ bookings });
   } catch (err) {

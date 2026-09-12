@@ -53,6 +53,7 @@ const OfferRide = () => {
   const [origin, setOrigin]       = useState(null);
   const [dest, setDest]           = useState(null);
   const [form, setForm]           = useState({ departureTime: '', seatsAvailable: 1 });
+  const [vehicle, setVehicle]     = useState({ model: '', number: '', color: '', type: 'Car' });
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
   const [nlpQuery, setNlpQuery]   = useState('');
@@ -72,6 +73,11 @@ const OfferRide = () => {
     if (!origin || !dest) return setError('Please select origin and destination on the map.');
     if (!form.departureTime) return setError('Please set your departure time.');
     
+    // Check compulsory vehicle details
+    if (!vehicle.model.trim() || !vehicle.number.trim() || !vehicle.color.trim()) {
+      return setError('Vehicle details (Model, Registration Number, Color) are compulsory.');
+    }
+
     // Check if time is in the past
     if (new Date(form.departureTime) < new Date()) {
       return setError('The selected date and time is invalid (cannot be in the past).');
@@ -84,7 +90,13 @@ const OfferRide = () => {
         origin:      { label: origin.label, latitude: origin.lat, longitude: origin.lng },
         destination: { label: dest.label,   latitude: dest.lat,   longitude: dest.lng },
         departureTime:  form.departureTime,
-        seatsAvailable: parseInt(form.seatsAvailable)
+        seatsAvailable: parseInt(form.seatsAvailable),
+        vehicle: {
+          model: vehicle.model.trim(),
+          number: vehicle.number.trim().toUpperCase(),
+          color: vehicle.color.trim(),
+          type: vehicle.type
+        }
       });
       navigate('/my-rides');
     } catch (err) {
@@ -182,6 +194,48 @@ const OfferRide = () => {
                     {n}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Vehicle Details (Compulsory) */}
+            <div style={{ ...styles.section, background: 'var(--bg-secondary)', padding: '0.9rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+              <label style={{ ...styles.label, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                🚗 Compulsory Vehicle Details
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.4rem' }}>
+                <input
+                  style={styles.input}
+                  placeholder="Vehicle Model (e.g. Honda City)"
+                  value={vehicle.model}
+                  onChange={e => setVehicle({ ...vehicle, model: e.target.value })}
+                  required
+                />
+                <input
+                  style={styles.input}
+                  placeholder="Plate No. (e.g. UK07AB1234)"
+                  value={vehicle.number}
+                  onChange={e => setVehicle({ ...vehicle, number: e.target.value })}
+                  required
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <input
+                  style={styles.input}
+                  placeholder="Color (e.g. Black / White)"
+                  value={vehicle.color}
+                  onChange={e => setVehicle({ ...vehicle, color: e.target.value })}
+                  required
+                />
+                <select
+                  style={styles.input}
+                  value={vehicle.type}
+                  onChange={e => setVehicle({ ...vehicle, type: e.target.value })}
+                >
+                  <option value="Car">Car</option>
+                  <option value="Bike">Bike</option>
+                  <option value="Scooter">Scooter</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
             </div>
 

@@ -40,6 +40,7 @@ const LiveMap = ({ rideId, ride, height = '400px' }) => {
   const [driverPos, setDriverPos]   = useState(null);
   const [rideActive, setRideActive] = useState(false);
   const [route, setRoute]           = useState(null);
+  const [eta, setEta]               = useState(null);
 
   useEffect(() => {
     // Fetch OSRM route
@@ -51,13 +52,17 @@ const LiveMap = ({ rideId, ride, height = '400px' }) => {
         const data = await res.json();
         if (data.routes?.[0]) {
           setRoute(data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]));
+          const durationMins = Math.round(data.routes[0].duration / 60);
+          const distanceKm   = (data.routes[0].distance / 1000).toFixed(1);
+          setEta({ durationMins, distanceKm });
         }
       } catch { }
     };
     fetchRoute();
 
     // Connect socket
-    socketRef.current = io('http://localhost:5000');
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://ride-pooling-system.onrender.com';
+    socketRef.current = io(SOCKET_URL);
     socketRef.current.emit('passenger:join', { rideId });
 
     socketRef.current.on('ride:started', () => setRideActive(true));
@@ -67,12 +72,17 @@ const LiveMap = ({ rideId, ride, height = '400px' }) => {
     });
 
     return () => socketRef.current?.disconnect();
-  }, [rideId]);
+  }, [rideId, ride]);
 
   const center = [ride.origin.latitude, ride.origin.longitude];
 
   return (
     <div>
+      {eta && (
+        <div style={styles.etaBanner}>
+          ⏱️ <strong>Estimated Travel Time to Destination:</strong> ~{eta.durationMins} mins ({eta.distanceKm} km)
+        </div>
+      )}
       {rideActive && (
         <div style={styles.liveBanner}>
           <span style={styles.liveDot} />
@@ -108,6 +118,7 @@ const LiveMap = ({ rideId, ride, height = '400px' }) => {
 };
 
 const styles = {
+  etaBanner:   { background: 'rgba(230, 57, 70, 0.1)', border: '1px solid var(--accent)', color: 'var(--text-primary)', padding: '0.65rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '0.8rem', fontSize: '0.88rem' },
   liveBanner:  { background: 'var(--green-soft)', border: '1px solid var(--green)', color: 'var(--green)', padding: '0.6rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '0.8rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.6rem' },
   liveDot:     { width: '8px', height: '8px', borderRadius: '50%', background: 'var(--green)', animation: 'pulse 1.5s infinite' },
   waitBanner:  { background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)', padding: '0.6rem 1rem', borderRadius: 'var(--radius-sm)', marginBottom: '0.8rem', fontSize: '0.85rem' }
