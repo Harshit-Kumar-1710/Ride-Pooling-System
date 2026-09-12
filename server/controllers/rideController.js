@@ -200,8 +200,15 @@ const completeRide = async (req, res) => {
       status: 'confirmed'
     });
 
+    // Older rides were created before vehicle details became required. Updating
+    // the status directly avoids validating unrelated, missing legacy fields.
+    const completion = await Ride.updateOne(
+      { _id: ride._id, status: { $in: ['open', 'full'] } },
+      { $set: { status: 'completed' } }
+    );
+    if (completion.modifiedCount !== 1)
+      return res.status(409).json({ message: 'Ride status changed. Please refresh and try again.' });
     ride.status = 'completed';
-    await ride.save();
 
     const creditResult = await awardCredits(req.user.id, passengerCount);
 

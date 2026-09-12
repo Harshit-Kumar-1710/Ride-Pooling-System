@@ -30,6 +30,8 @@ const pickupIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41]
 });
 
+const hasVehicleDetails = (vehicle) => Boolean(vehicle?.model && vehicle?.number && vehicle?.color);
+
 const RideDetail = () => {
   const { id }    = useParams();
   const { state } = useLocation();
@@ -175,7 +177,7 @@ const RideDetail = () => {
               </div>
 
               {/* Compulsory Vehicle Details */}
-              {ride.vehicle && (
+              {hasVehicleDetails(ride.vehicle) ? (
                 <div style={{ ...styles.card, animationDelay: '0.45s', borderLeft: '3px solid var(--accent)' }}>
                   <p style={styles.sectionLabel}>🚗 Compulsory Vehicle Details</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.4rem' }}>
@@ -196,6 +198,11 @@ const RideDetail = () => {
                       <p style={{ fontWeight: '700', fontSize: '0.88rem', color: 'var(--green)' }}>⛽ {ride.vehicle.fuelType || 'Petrol'}</p>
                     </div>
                   </div>
+                </div>
+              ) : (
+                <div style={{ ...styles.card, animationDelay: '0.45s' }}>
+                  <p style={styles.sectionLabel}>🚗 Vehicle Details</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>Vehicle details were not recorded for this legacy ride.</p>
                 </div>
               )}
 

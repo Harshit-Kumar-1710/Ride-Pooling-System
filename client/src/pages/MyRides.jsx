@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
+const hasVehicleDetails = (vehicle) => Boolean(vehicle?.model && vehicle?.number && vehicle?.color);
+
 const MyRides = () => {
   const navigate = useNavigate();
   const [tab, setTab]         = useState('offered');
@@ -113,7 +115,7 @@ const MyRides = () => {
                 <div style={styles.meta}>
                   <span style={styles.chip}>🕐 {formatTime(ride.departureTime)}</span>
                   <span style={styles.chip}>💺 {ride.seatsAvailable}/{ride.seatsTotal} seats</span>
-                  {ride.vehicle && <span style={styles.chip}>🚗 {ride.vehicle.model} ({ride.vehicle.number})</span>}
+                  {hasVehicleDetails(ride.vehicle) && <span style={styles.chip}>🚗 {ride.vehicle.model} ({ride.vehicle.number})</span>}
                 </div>
 
                 {/* Driver view: Booked Passengers roster */}
@@ -174,9 +176,13 @@ const MyRides = () => {
                       📧 Contact: {booking.rideId.driverId.email} {booking.rideId?.driverId?.personalEmail ? `/ ${booking.rideId.driverId.personalEmail}` : ''}
                     </p>
                   )}
-                  {booking.rideId?.vehicle && (
+                  {hasVehicleDetails(booking.rideId?.vehicle) ? (
                     <p style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: '600', marginTop: '0.2rem' }}>
                       🚗 Vehicle: {booking.rideId.vehicle.model} | {booking.rideId.vehicle.number} ({booking.rideId.vehicle.color}) • ⛽ {booking.rideId.vehicle.fuelType || 'Petrol'}
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                      🚗 Vehicle details were not recorded for this legacy ride.
                     </p>
                   )}
                 </div>

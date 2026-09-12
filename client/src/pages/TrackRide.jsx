@@ -6,6 +6,8 @@ import LiveTracker from '../components/LiveTracker';
 import RideChat from '../components/RideChat';
 import API from '../services/api';
 
+const hasVehicleDetails = (vehicle) => Boolean(vehicle?.model && vehicle?.number && vehicle?.color);
+
 const TrackRide = () => {
   const { id }       = useParams();
   const { user }     = useAuth();
@@ -116,12 +118,14 @@ const TrackRide = () => {
                   {ride.driverId?.email && <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>📧 {ride.driverId.email}</p>}
                 </div>
               </div>
-              {ride.vehicle && (
+              {hasVehicleDetails(ride.vehicle) ? (
                 <div style={{ marginTop: '0.8rem', padding: '0.6rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                   <p style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--accent)' }}>🚗 Vehicle Details</p>
                   <p style={{ fontSize: '0.82rem', fontWeight: '600', marginTop: '0.2rem' }}>{ride.vehicle.model} ({ride.vehicle.number})</p>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Color: {ride.vehicle.color} • Type: {ride.vehicle.type} • Fuel: ⛽ {ride.vehicle.fuelType || 'Petrol'}</p>
                 </div>
+              ) : (
+                <p style={{ marginTop: '0.8rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>🚗 Vehicle details were not recorded for this legacy ride.</p>
               )}
             </div>
 
