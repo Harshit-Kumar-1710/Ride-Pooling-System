@@ -75,6 +75,10 @@ const parseTime = (text) => {
   if (isTomorrow) date.setDate(date.getDate() + 1);
   if (hours !== null) {
     date.setHours(hours, minutes, 0, 0);
+    // If time parsed today is already in the past, assume user meant tomorrow
+    if (!isTomorrow && date < now) {
+      date.setDate(date.getDate() + 1);
+    }
   }
 
   // Format as datetime-local value
@@ -102,8 +106,8 @@ const geocodeFallback = async (text) => {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&limit=1&countrycodes=in`);
     const data = await res.json();
     if (data && data.length > 0) {
-      // Use the first two parts of the display name for a clean label
-      const label = data[0].display_name.split(',').slice(0, 2).join(',').trim();
+      // Use 4 components for a precise detailed landmark label
+      const label = data[0].display_name.split(',').slice(0, 4).join(', ').trim();
       return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), label, matchedKey: text };
     }
   } catch(e) {

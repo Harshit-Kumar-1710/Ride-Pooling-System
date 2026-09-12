@@ -32,7 +32,7 @@ const MapClickHandler = ({ step, onPickupSet, onDropSet }) => {
       const { lat, lng } = e.latlng;
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
       const data = await res.json();
-      const label = data.display_name?.split(',').slice(0, 2).join(',') || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      const label = data.display_name?.split(',').slice(0, 4).join(', ') || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       if (step === 'pickup') onPickupSet({ lat, lng, label });
       else onDropSet({ lat, lng, label });
     }
