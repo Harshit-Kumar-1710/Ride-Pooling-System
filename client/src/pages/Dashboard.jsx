@@ -37,12 +37,11 @@ const Dashboard = () => {
             <span style={styles.dash}>——</span> WELCOME BACK, {user?.name?.split(' ')[0]?.toUpperCase()}
           </p>
           <h1 style={styles.heroTitle}>
-            SHARE THE<br />
-            <span style={styles.heroItalic}>RIDE.</span> SAVE<br />
-            THE PLANET.
+            MOVE THROUGH<br />
+            CAMPUS <span style={styles.heroItalic}>TOGETHER.</span>
           </h1>
           <p style={styles.heroSub}>
-            Your campus ride-sharing hub. Offer rides, find matches, earn credits.
+            A dependable way to find your people, share a route, and make every campus commute simpler.
           </p>
           <div style={styles.heroBtns}>
             <button style={styles.ctaPrimary} onClick={() => navigate('/offer-ride')}>
@@ -92,10 +91,10 @@ const Dashboard = () => {
         </h2>
         <div style={styles.actionsGrid}>
           {[
-            { icon: '🚗', title: 'Offer a Ride', desc: 'Post your route, set seats, and earn credits from passengers.', path: '/offer-ride' },
-            { icon: '🔍', title: 'Find a Ride', desc: 'Search by route & time. Use Smart Search for instant results.', path: '/find-ride' },
-            { icon: '📋', title: 'My Rides', desc: 'Track your offered and booked rides. Chat with your group.', path: '/my-rides' },
-            { icon: '👤', title: 'Profile', desc: 'View your stats, achievements, and reviews from other riders.', path: '/profile' },
+            { icon: '🚗', title: 'Offer a ride', desc: 'Share your route, choose seats, and help fellow students get there.', path: '/offer-ride' },
+            { icon: '⌕', title: 'Find a ride', desc: 'Search by route and time to discover a ride that fits your day.', path: '/find-ride' },
+            { icon: '◫', title: 'My rides', desc: 'Keep every offered and booked trip in one focused place.', path: '/my-rides' },
+            { icon: '◉', title: 'Your profile', desc: 'See your contribution, credits, and community feedback.', path: '/profile' },
           ].map((a, i) => (
             <div
               key={i}
@@ -185,63 +184,16 @@ const Dashboard = () => {
         )}
       </section>
 
-      {/* ── Premium Fleet (Amazon Style) ── */}
-      <section style={styles.fleetSection}>
-        <p style={styles.sectionTag}>
-          <span style={styles.dash}>——</span> RIDE IN STYLE
-        </p>
-        <h2 style={styles.sectionTitle}>
-          OUR PREMIUM <span style={styles.heroItalic}>FLEET</span>
-        </h2>
-        
-        <div style={styles.fleetGrid}>
-          {/* Luxury Tier */}
-          <div style={styles.fleetCard} onClick={() => navigate('/offer-ride')}>
-            <div style={styles.fleetImgWrap}>
-              <img src="/ferrari.png" alt="Luxury Sports Car" style={styles.fleetImg} />
-              <span style={styles.badgeLuxury}>LUXURY</span>
-            </div>
-            <div style={styles.fleetContent}>
-              <h3 style={styles.fleetName}>Supercar Selection</h3>
-              <p style={styles.fleetDesc}>For special occasions. Arrive like a VIP.</p>
-              <div style={styles.fleetPriceRow}>
-                <span style={styles.fleetPrice}>500 <span style={styles.fleetCredits}>credits/km</span></span>
-                <button style={styles.fleetBtn}>View Fleet</button>
-              </div>
-            </div>
-          </div>
-
-          {/* Premium Tier */}
-          <div style={styles.fleetCard} onClick={() => navigate('/offer-ride')}>
-            <div style={styles.fleetImgWrap}>
-              <img src="/audi.png" alt="Premium Sedan" style={styles.fleetImg} />
-              <span style={styles.badgePremium}>PREMIUM</span>
-            </div>
-            <div style={styles.fleetContent}>
-              <h3 style={styles.fleetName}>Executive Sedans</h3>
-              <p style={styles.fleetDesc}>Quiet, comfortable, perfect for studying on the go.</p>
-              <div style={styles.fleetPriceRow}>
-                <span style={styles.fleetPrice}>100 <span style={styles.fleetCredits}>credits/km</span></span>
-                <button style={styles.fleetBtn}>View Fleet</button>
-              </div>
-            </div>
-          </div>
-
-          {/* Standard Tier */}
-          <div style={styles.fleetCard} onClick={() => navigate('/offer-ride')}>
-            <div style={styles.fleetImgWrap}>
-              <img src="/cab.png" alt="Standard Cab" style={styles.fleetImg} />
-              <span style={styles.badgeStandard}>STANDARD</span>
-            </div>
-            <div style={styles.fleetContent}>
-              <h3 style={styles.fleetName}>Everyday Commute</h3>
-              <p style={styles.fleetDesc}>Reliable, clean cabs for your daily campus trips.</p>
-              <div style={styles.fleetPriceRow}>
-                <span style={styles.fleetPrice}>20 <span style={styles.fleetCredits}>credits/km</span></span>
-                <button style={styles.fleetBtn}>View Fleet</button>
-              </div>
-            </div>
-          </div>
+      <section style={styles.trustSection}>
+        <p style={styles.sectionTag}><span style={styles.dash}>——</span> BUILT FOR THE CAMPUS</p>
+        <div className="trust-grid" style={styles.trustGrid}>
+          {[
+            ['Verified community', 'Ride with students from your own university community.'],
+            ['Clear trip details', 'See the route, seats, vehicle details, and ride status upfront.'],
+            ['Simple coordination', 'Track your ride and keep the group in sync without switching apps.'],
+          ].map(([title, copy], i) => <div key={title} style={styles.trustItem}>
+            <span style={styles.trustNumber}>0{i + 1}</span><div><h3 style={styles.trustTitle}>{title}</h3><p style={styles.trustCopy}>{copy}</p></div>
+          </div>)}
         </div>
       </section>
 
@@ -326,21 +278,12 @@ const styles = {
   infoText: { color: 'var(--text-secondary)', fontSize: '0.88rem' },
 
   /* Fleet Section */
-  fleetSection: { padding: '2rem 3rem 4rem', position: 'relative', zIndex: 1, maxWidth: '1100px', margin: '0 auto' },
-  fleetGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '1.5rem' },
-  fleetCard: { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)', transition: 'transform 0.3s ease, box-shadow 0.3s ease', cursor: 'pointer', ':hover': { transform: 'translateY(-5px)', boxShadow: 'var(--shadow-card-hover)' } },
-  fleetImgWrap: { position: 'relative', width: '100%', paddingTop: '56.25%', background: '#000' },
-  fleetImg: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' },
-  badgeLuxury: { position: 'absolute', top: '1rem', right: '1rem', background: '#000', color: '#d4af37', fontSize: '0.65rem', fontWeight: '800', padding: '0.3rem 0.8rem', borderRadius: '4px', border: '1px solid #d4af37', letterSpacing: '0.1em' },
-  badgePremium: { position: 'absolute', top: '1rem', right: '1rem', background: '#111', color: '#e2e8f0', fontSize: '0.65rem', fontWeight: '800', padding: '0.3rem 0.8rem', borderRadius: '4px', border: '1px solid #475569', letterSpacing: '0.1em' },
-  badgeStandard: { position: 'absolute', top: '1rem', right: '1rem', background: 'var(--accent)', color: '#fff', fontSize: '0.65rem', fontWeight: '800', padding: '0.3rem 0.8rem', borderRadius: '4px', letterSpacing: '0.1em' },
-  fleetContent: { padding: '1.5rem' },
-  fleetName: { fontFamily: "'Outfit', sans-serif", fontSize: '1.2rem', fontWeight: '800', marginBottom: '0.4rem', color: 'var(--text-primary)' },
-  fleetDesc: { color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '1.5rem' },
-  fleetPriceRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '1rem' },
-  fleetPrice: { fontFamily: "'Outfit', sans-serif", fontSize: '1.2rem', fontWeight: '900', color: 'var(--text-primary)' },
-  fleetCredits: { fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase' },
-  fleetBtn: { background: 'var(--bg-hover)', color: 'var(--text-primary)', border: 'none', padding: '0.5rem 1.2rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', transition: 'background 0.2s' },
+  trustSection: { padding: '1rem 3rem 4rem', position: 'relative', zIndex: 1, maxWidth: '1100px', margin: '0 auto' },
+  trustGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'rgba(22, 22, 29, 0.65)' },
+  trustItem: { display: 'flex', gap: '1rem', padding: '1.6rem', borderRight: '1px solid var(--border)' },
+  trustNumber: { color: 'var(--accent)', fontFamily: "'Outfit', sans-serif", fontWeight: '800', fontSize: '0.8rem', letterSpacing: '0.08em' },
+  trustTitle: { fontSize: '0.92rem', fontWeight: '750', marginBottom: '0.35rem' },
+  trustCopy: { fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.6' },
 };
 
 export default Dashboard;
