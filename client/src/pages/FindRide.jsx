@@ -7,12 +7,33 @@ import API from '../services/api';
 import LocationSearch from '../components/LocationSearch';
 import { parseRideQuery } from '../utils/nlpParser';
 
+import { useAuth } from '../context/AuthContext';
+import { useEffect } from 'react';
+import { useMap } from 'react-leaflet';
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
+
+const GEU_CAMPUSES = {
+  'Graphic Era Deemed to be University, Dehradun': { lat: 30.2729, lng: 78.0687, label: 'Graphic Era University (Main Campus), Dehradun' },
+  'Graphic Era Hill University, Dehradun':         { lat: 30.2735, lng: 78.0695, label: 'Graphic Era Hill University, Dehradun' },
+  'Graphic Era Hill University, Bhimtal':          { lat: 29.3524, lng: 79.5530, label: 'Graphic Era Hill University, Bhimtal' },
+  'Graphic Era University, Haldwani':              { lat: 29.2150, lng: 79.5200, label: 'Graphic Era University, Haldwani' },
+};
+
+const ChangeView = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center && center[0] && center[1]) {
+      map.setView(center, 14);
+    }
+  }, [center, map]);
+  return null;
+};
 
 const pickupIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
@@ -40,7 +61,6 @@ const MapClickHandler = ({ step, onPickupSet, onDropSet }) => {
   return null;
 };
 
-
 const getMinDateTime = () => {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -49,16 +69,29 @@ const getMinDateTime = () => {
 
 const FindRide = () => {
   const navigate = useNavigate();
-  const [step, setStep]         = useState('pickup');
-  const [pickup, setPickup]     = useState(null);
-  const [drop, setDrop]         = useState(null);
-  const [preferredTime, setPreferredTime] = useState('');
-  const [rides, setRides]       = useState([]);
-  const [searched, setSearched] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
-  const [nlpQuery, setNlpQuery] = useState('');
-  const [nlpResult, setNlpResult] = useState(null);
+  const { user } = useAuth();
+  const userCampus = user?.campus || 'Graphic Era Deemed to be University, Dehradun';
+  const defaultCampusData = GEU_CAMPUSES[userCampus] || GEU_CAMPUSES['Graphic Era Deemed to be University, Dehradun'];
+
+  const [selectedCampus, setSelectedCampus] = useState(userCampus);
+  const [mapCenter, setMapCenter]           = useState([defaultCampusData.lat, defaultCampusData.lng]);
+  const [step, setStep]                     = useState('pickup');
+  const [pickup, setPickup]                 = useState({ lat: defaultCampusData.lat, lng: defaultCampusData.lng, label: defaultCampusData.label });
+  const [drop, setDrop]                     = useState(null);
+  const [preferredTime, setPreferredTime]   = useState('');
+  const [rides, setRides]                   = useState([]);
+  const [searched, setSearched]             = useState(false);
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState('');
+  const [nlpQuery, setNlpQuery]             = useState('');
+  const [nlpResult, setNlpResult]           = useState(null);
+
+  // Re-center map and update pickup whenever campus selection changes
+  useEffect(() => {
+    const data = GEU_CAMPUSES[selectedCampus] || defaultCampusData;
+    setMapCenter([data.lat, data.lng]);
+    setPickup({ lat: data.lat, lng: data.lng, label: data.label });
+  }, [selectedCampus]);
 
   const handleNlpSearch = async () => {
     if (!nlpQuery.trim()) return;
@@ -234,10 +267,48 @@ const FindRide = () => {
           </div>
 
           {/* Map */}
-          <div style={styles.mapPanel}>
-            <MapContainer center={[30.3165, 78.0322]} zoom={13}
+          <div style={{ ...styles.mapPanel, position: 'relative' }}>
+            {/* Campus Selector Overlay Pill */}
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              zIndex: 1000,
+              background: 'var(--bg-card)',
+              border: '1px solid var(--accent)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '6px 12px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--accent)' }}>🎓 Campus:</span>
+              <select
+                style={{
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '4px',
+                  fontSize: '0.78rem',
+                  padding: '3px 6px',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+                value={selectedCampus}
+                onChange={e => setSelectedCampus(e.target.value)}
+              >
+                <option value="Graphic Era Deemed to be University, Dehradun">GEU Dehradun Main</option>
+                <option value="Graphic Era Hill University, Dehradun">GEHU Dehradun</option>
+                <option value="Graphic Era Hill University, Bhimtal">GEHU Bhimtal</option>
+                <option value="Graphic Era University, Haldwani">GEU Haldwani</option>
+              </select>
+            </div>
+
+            <MapContainer center={mapCenter} zoom={14}
               style={{ height: '100%', width: '100%', borderRadius: 'var(--radius-md)', touchAction: 'none' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap' />
+              <ChangeView center={mapCenter} />
               <MapClickHandler step={step}
                 onPickupSet={(loc) => { setPickup(loc); setStep('drop'); }}
                 onDropSet={(loc) => { setDrop(loc); }} />

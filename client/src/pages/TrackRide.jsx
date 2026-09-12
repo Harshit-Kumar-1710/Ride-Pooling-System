@@ -59,6 +59,44 @@ const TrackRide = () => {
           </span>
         </div>
 
+        {ride.status === 'completed' && (
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.08))',
+            border: '1px solid #f59e0b',
+            borderRadius: 'var(--radius-md)',
+            padding: '1rem 1.2rem',
+            marginBottom: '1.2rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            animation: 'fadeInUp 0.4s ease'
+          }}>
+            <div>
+              <p style={{ fontSize: '1rem', fontWeight: '800', color: '#f59e0b', marginBottom: '0.2rem' }}>🎉 Ride Completed!</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                {isDriver ? 'Please rate your passengers to complete the trip.' : 'Please rate your driver to provide valuable feedback!'}
+              </p>
+            </div>
+            <button
+              style={{
+                padding: '0.65rem 1.4rem',
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                fontWeight: '700',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)'
+              }}
+              onClick={() => navigate(`/review/${ride._id}`)}
+            >
+              ⭐ Rate {isDriver ? 'Passengers' : 'Driver'}
+            </button>
+          </div>
+        )}
+
         <div style={styles.grid}>
           <div style={styles.leftPanel}>
             <div style={{ ...styles.card, animationDelay: '0.1s' }}>
