@@ -285,3 +285,163 @@ input:focus, select:focus, textarea:focus {
   margin-right: 0.75rem;
   font-weight: 700;
 }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE MEDIA QUERIES (TABLETS & PHONES)
+   ══════════════════════════════════════════ */
+
+/* Large Tablets & Small Laptops (< 1024px) */
+@media (max-width: 1024px) {
+  div[style*="heroSection"] {
+    flex-direction: column !important;
+    padding: 3rem 1.5rem !important;
+    gap: 2rem !important;
+  }
+
+  div[style*="heroInner"] {
+    max-width: 100% !important;
+    text-align: center;
+  }
+
+  div[style*="heroSub"] {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  div[style*="heroBtns"] {
+    justify-content: center;
+  }
+
+  div[style*="heroVisual"] {
+    width: 100% !important;
+    height: 280px !important;
+  }
+
+  div[style*="actionsGrid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  div[style*="recGrid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  div[style*="fleetGrid"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Tablets & Mobile Screens (< 850px) */
+@media (max-width: 850px) {
+  /* Two-column Maps & Form Panels convert to single column */
+  div[style*="gridTemplateColumns: '360px 1fr'"],
+  div[style*="gridTemplateColumns: '380px 1fr'"],
+  div[style*="gridTemplateColumns: '300px 1fr'"],
+  div[style*="gridTemplateColumns: 360px 1fr"],
+  div[style*="gridTemplateColumns: 380px 1fr"],
+  div[style*="gridTemplateColumns: 300px 1fr"] {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+
+  div[style*="formPanel"],
+  div[style*="leftPanel"] {
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  div[style*="mapPanel"] {
+    height: 380px !important;
+    min-height: 320px !important;
+  }
+
+  /* Stats Bar on Dashboard */
+  section[style*="statsBar"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.5rem !important;
+    padding: 1.5rem 1rem !important;
+  }
+
+  /* Auth Pages Split Screen */
+  div[style*="page"][style*="minHeight: '100vh'"],
+  div[style*="page"][style*="min-height: 100vh"] {
+    flex-direction: column !important;
+  }
+
+  div[style*="left"] {
+    padding: 3rem 1.5rem 1.5rem !important;
+  }
+
+  div[style*="right"] {
+    padding: 1.5rem 1rem !important;
+  }
+
+  /* Info Bars */
+  section[style*="infoBar"] {
+    margin: 0 1rem 2rem !important;
+  }
+}
+
+/* Smartphones (< 576px) */
+@media (max-width: 576px) {
+  body {
+    font-size: 14px;
+  }
+
+  /* Container Paddings */
+  div[style*="padding: 1.5rem 1rem"],
+  section[style*="padding: 4rem 3rem"],
+  div[style*="padding: 2rem 3rem"],
+  div[style*="padding: 4rem 3rem"] {
+    padding: 1.2rem 0.8rem !important;
+  }
+
+  /* Navbar Mobile Layout */
+  nav {
+    padding: 0 0.8rem !important;
+    height: auto !important;
+    min-height: 52px;
+  }
+
+  nav div[style*="center"] {
+    overflow-x: auto;
+    max-width: 100%;
+    white-space: nowrap;
+    padding-bottom: 2px;
+  }
+
+  /* Hide text logout button on mobile, keep avatar/theme */
+  nav button[style*="logoutBtn"] {
+    display: none !important;
+  }
+
+  /* Actions, Recommended & Fleet Grid to 1 Column */
+  div[style*="actionsGrid"],
+  div[style*="recGrid"],
+  div[style*="fleetGrid"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Mobile Floating Chat Overlay */
+  div[style*="position: fixed"][style*="bottom: 24px"] {
+    right: 8px !important;
+    left: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+
+  /* Map Panel Height for Small Phones */
+  div[style*="mapPanel"] {
+    height: 320px !important;
+  }
+
+  /* Form Cards */
+  div[style*="card"],
+  div[style*="formCard"] {
+    padding: 1.2rem 1rem !important;
+  }
+
+  /* Input fields */
+  input, select, textarea {
+    font-size: 0.88rem !important;
+  }
+}
