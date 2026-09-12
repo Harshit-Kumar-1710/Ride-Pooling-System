@@ -139,7 +139,13 @@ const TrackRide = () => {
             )}
 
             {isDriver && (
-              <LiveTracker rideId={id} userId={user._id} />
+              <LiveTracker rideId={id} userId={user._id} userName={user?.name} isDriver={true} />
+            )}
+
+            {!isDriver && booking && booking.status === 'confirmed' && ride.status !== 'completed' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <LiveTracker rideId={id} userId={user._id} userName={user?.name} isDriver={false} />
+              </div>
             )}
 
             {!isDriver && booking && (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const LiveTracker = ({ rideId, userId }) => {
+const LiveTracker = ({ rideId, userId, userName, isDriver = true }) => {
   const socketRef = useRef(null);
   const watchRef  = useRef(null);
   const [tracking, setTracking] = useState(false);
@@ -16,16 +16,25 @@ const LiveTracker = ({ rideId, userId }) => {
 
     const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://ride-pooling-system.onrender.com';
     socketRef.current = io(SOCKET_URL);
-    socketRef.current.emit('driver:join', { rideId, driverId: userId });
-    socketRef.current.emit('ride:started', { rideId });
+    
+    if (isDriver) {
+      socketRef.current.emit('driver:join', { rideId, driverId: userId });
+      socketRef.current.emit('ride:started', { rideId });
+    } else {
+      socketRef.current.emit('passenger:join', { rideId });
+    }
 
     watchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        socketRef.current?.emit('driver:location', { rideId, lat, lng });
-        setStatus(`Sharing location — ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        if (isDriver) {
+          socketRef.current?.emit('driver:location', { rideId, lat, lng });
+        } else {
+          socketRef.current?.emit('passenger:location', { rideId, passengerId: userId, passengerName: userName, lat, lng });
+        }
+        setStatus(`Sharing live location — ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
       },
-      (err) => setError('Location access denied. Please enable GPS.'),
+      (err) => setError('Location access denied. Please enable GPS in browser.'),
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
     );
 

@@ -17,6 +17,12 @@ const driverIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41]
 });
 
+const passengerLiveIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41], iconAnchor: [12, 41]
+});
+
 const originIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -37,10 +43,11 @@ const PanToDriver = ({ pos }) => {
 
 const LiveMap = ({ rideId, ride, height = '400px' }) => {
   const socketRef   = useRef(null);
-  const [driverPos, setDriverPos]   = useState(null);
-  const [rideActive, setRideActive] = useState(false);
-  const [route, setRoute]           = useState(null);
-  const [eta, setEta]               = useState(null);
+  const [driverPos, setDriverPos]                     = useState(null);
+  const [passengerLocations, setPassengerLocations]   = useState({});
+  const [rideActive, setRideActive]                   = useState(false);
+  const [route, setRoute]                             = useState(null);
+  const [eta, setEta]                                 = useState(null);
 
   useEffect(() => {
     // Fetch OSRM route
@@ -69,6 +76,13 @@ const LiveMap = ({ rideId, ride, height = '400px' }) => {
     socketRef.current.on('driver:location', ({ lat, lng }) => {
       setDriverPos([lat, lng]);
       setRideActive(true);
+    });
+
+    socketRef.current.on('passenger:location', ({ passengerId, passengerName, lat, lng }) => {
+      setPassengerLocations(prev => ({
+        ...prev,
+        [passengerId]: { name: passengerName, lat, lng }
+      }));
     });
 
     return () => socketRef.current?.disconnect();
@@ -112,6 +126,11 @@ const LiveMap = ({ rideId, ride, height = '400px' }) => {
             <PanToDriver pos={driverPos} />
           </>
         )}
+        {Object.entries(passengerLocations).map(([pId, pData]) => (
+          <Marker key={pId} position={[pData.lat, pData.lng]} icon={passengerLiveIcon}>
+            <Popup>👤 Live Passenger: {pData.name}</Popup>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
   );

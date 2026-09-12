@@ -54,7 +54,12 @@ io.on('connection', (socket) => {
 
   // Driver sends location update
   socket.on('driver:location', ({ rideId, lat, lng }) => {
-    socket.to(`ride:${rideId}`).emit('driver:location', { lat, lng });
+    io.to(`ride:${rideId}`).emit('driver:location', { lat, lng });
+  });
+
+  // Passenger sends live location update (optional for pickup tracking)
+  socket.on('passenger:location', ({ rideId, passengerId, passengerName, lat, lng }) => {
+    io.to(`ride:${rideId}`).emit('passenger:location', { passengerId, passengerName, lat, lng });
   });
 
   // Driver starts the ride
