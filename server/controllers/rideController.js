@@ -38,6 +38,15 @@ const isGEUCampus = (loc) => {
   return false;
 };
 
+const isValidIndianLicensePlate = (plate) => {
+  if (!plate) return false;
+  const clean = plate.replace(/[\s-]/g, '').toUpperCase();
+  // Standard Indian RTO format: 2-letter State Code + 1-2 digit RTO code + 1-3 letter series + 4-digit number
+  // Examples: UK07AB1234, UP14C5678, DL3CA1234, MH02CL9999
+  const pattern = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/;
+  return pattern.test(clean);
+};
+
 const postRide = async (req, res) => {
   try {
     const { origin, destination, departureTime, seatsAvailable, vehicle } = req.body;
@@ -46,6 +55,12 @@ const postRide = async (req, res) => {
 
     if (!vehicle || !vehicle.model || !vehicle.number || !vehicle.color || !vehicle.fuelType) {
       return res.status(400).json({ message: 'Compulsory vehicle details (Model, Plate Number, Color, Fuel Type) are required.' });
+    }
+
+    if (!isValidIndianLicensePlate(vehicle.number)) {
+      return res.status(400).json({
+        message: 'Invalid Vehicle License Plate format. Please enter a valid Indian RTO registration number (e.g. UK07AB1234, UP14C5678).'
+      });
     }
 
     // Option A Policy Enforcement: Ride MUST include a Graphic Era campus as origin or destination

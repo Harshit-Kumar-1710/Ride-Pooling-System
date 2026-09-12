@@ -111,10 +111,11 @@ const OfferRide = () => {
       return setError('Compulsory vehicle details (Model, Registration Number, Color, Fuel Type) are required.');
     }
 
-    // Plate format validation
+    // Plate format validation via Indian RTO Regex
     const cleanPlate = vehicle.number.trim().replace(/[\s-]/g, '').toUpperCase();
-    if (cleanPlate.length < 5 || cleanPlate.length > 13) {
-      return setError('Please enter a valid vehicle registration plate number (e.g. UK07AB1234).');
+    const plateRegex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/;
+    if (!plateRegex.test(cleanPlate)) {
+      return setError('Please enter a valid Indian vehicle registration plate number (e.g. UK07AB1234 or UP14C5678).');
     }
 
     // Check if time is in the past
