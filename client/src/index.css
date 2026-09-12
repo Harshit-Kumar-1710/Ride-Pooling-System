@@ -278,6 +278,95 @@ input:focus, select:focus, textarea:focus {
    UTILITY CLASSES
    ══════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════
+   BIG TECH UI ENHANCEMENTS (Uber, Samsung, Apple Style)
+   ══════════════════════════════════════════ */
+
+/* Shimmer Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent) 55%, #ff758c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, var(--accent) 0%, #ff4b5c 50%, #ff758c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Uber / Apple Style Glass Card */
+.tech-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tech-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tech-card:hover::before {
+  opacity: 1;
+}
+
+.tech-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+  box-shadow: 0 20px 40px rgba(230, 57, 70, 0.18), 0 0 0 1px var(--accent);
+}
+
+/* Big Tech Primary Glow Button */
+.glow-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: #ffffff !important;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 20px rgba(230, 57, 70, 0.35);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.glow-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(230, 57, 70, 0.55), 0 0 20px rgba(230, 57, 70, 0.3);
+}
+
+.glow-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Glass Status Tag */
+.glass-badge {
+  background: rgba(230, 57, 70, 0.12);
+  border: 1px solid rgba(230, 57, 70, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--accent);
+  border-radius: 99px;
+  padding: 4px 14px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Red dash before section labels */
 .section-dash::before {
   content: '——';
