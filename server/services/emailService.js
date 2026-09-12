@@ -1,20 +1,11 @@
-const nodemailer = require('nodemailer');
-
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-};
+const { Resend } = require('resend');
 
 const sendEmail = async (to, subject, html) => {
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"RidePool GEU" <${process.env.EMAIL_USER}>`,
+    if (!to || !process.env.RESEND_API_KEY) return;
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: 'RidePool GEU <onboarding@resend.dev>',
       to,
       subject,
       html: wrapTemplate(html)

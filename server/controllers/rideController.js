@@ -222,8 +222,8 @@ const completeRide = async (req, res) => {
       }
     } catch (emailErr) { console.error('Complete ride email error:', emailErr.message); }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error.' });
+    console.error('completeRide error:', err);
+    res.status(500).json({ message: err.message || 'Server error completing ride.' });
   }
 };
 
