@@ -32,7 +32,7 @@ const MapClickHandler = ({ onOriginSet, onDestSet, step }) => {
       const { lat, lng } = e.latlng;
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
       const data = await res.json();
-      const label = data.display_name?.split(',').slice(0, 2).join(',') || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      const label = data.display_name?.split(',').slice(0, 4).join(', ') || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       if (step === 'origin') onOriginSet({ lat, lng, label });
       else onDestSet({ lat, lng, label });
     }
@@ -53,7 +53,7 @@ const OfferRide = () => {
   const [origin, setOrigin]       = useState(null);
   const [dest, setDest]           = useState(null);
   const [form, setForm]           = useState({ departureTime: '', seatsAvailable: 1 });
-  const [vehicle, setVehicle]     = useState({ model: '', number: '', color: '', type: 'Car' });
+  const [vehicle, setVehicle]     = useState({ model: '', number: '', color: '', type: 'Car', fuelType: 'Petrol' });
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
   const [nlpQuery, setNlpQuery]   = useState('');
@@ -74,8 +74,14 @@ const OfferRide = () => {
     if (!form.departureTime) return setError('Please set your departure time.');
     
     // Check compulsory vehicle details
-    if (!vehicle.model.trim() || !vehicle.number.trim() || !vehicle.color.trim()) {
-      return setError('Vehicle details (Model, Registration Number, Color) are compulsory.');
+    if (!vehicle.model.trim() || !vehicle.number.trim() || !vehicle.color.trim() || !vehicle.fuelType) {
+      return setError('Compulsory vehicle details (Model, Registration Number, Color, Fuel Type) are required.');
+    }
+
+    // Plate format validation
+    const cleanPlate = vehicle.number.trim().replace(/[\s-]/g, '').toUpperCase();
+    if (cleanPlate.length < 5 || cleanPlate.length > 13) {
+      return setError('Please enter a valid vehicle registration plate number (e.g. UK07AB1234).');
     }
 
     // Check if time is in the past
@@ -93,9 +99,10 @@ const OfferRide = () => {
         seatsAvailable: parseInt(form.seatsAvailable),
         vehicle: {
           model: vehicle.model.trim(),
-          number: vehicle.number.trim().toUpperCase(),
+          number: cleanPlate,
           color: vehicle.color.trim(),
-          type: vehicle.type
+          type: vehicle.type,
+          fuelType: vehicle.fuelType
         }
       });
       navigate('/my-rides');
@@ -235,6 +242,20 @@ const OfferRide = () => {
                   <option value="Bike">Bike</option>
                   <option value="Scooter">Scooter</option>
                   <option value="Other">Other</option>
+                </select>
+              </div>
+              <div style={{ marginTop: '0.5rem' }}>
+                <select
+                  style={styles.input}
+                  value={vehicle.fuelType}
+                  onChange={e => setVehicle({ ...vehicle, fuelType: e.target.value })}
+                  required
+                >
+                  <option value="Petrol">⛽ Petrol</option>
+                  <option value="Diesel">⛽ Diesel</option>
+                  <option value="EV / Electric">⚡ EV / Electric</option>
+                  <option value="CNG">🌱 CNG</option>
+                  <option value="Hybrid">🔋 Hybrid</option>
                 </select>
               </div>
             </div>

@@ -63,18 +63,30 @@ io.on('connection', (socket) => {
   });
 
   // ── Ride Chat ──
-  socket.on('chat:join', ({ rideId, userName }) => {
+  socket.on('chat:join', ({ rideId, userId, userName }) => {
     socket.join(`chat:${rideId}`);
+    if (userId) socket.join(`user:${userId}`);
     // Send chat history for this ride
     socket.emit('chat:history', chatHistory[rideId] || []);
   });
 
-  socket.on('chat:send', ({ rideId, senderId, senderName, text }) => {
-    const msg = { senderId, senderName, text, timestamp: new Date().toISOString() };
+  socket.on('chat:send', ({ rideId, senderId, senderName, senderRole, targetPassengerId, targetPassengerName, text }) => {
+    const msg = {
+      senderId,
+      senderName,
+      senderRole: senderRole || 'passenger',
+      targetPassengerId: targetPassengerId || null,
+      targetPassengerName: targetPassengerName || null,
+      text,
+      timestamp: new Date().toISOString()
+    };
+
     if (!chatHistory[rideId]) chatHistory[rideId] = [];
     chatHistory[rideId].push(msg);
     // Keep only last 100 messages per ride
     if (chatHistory[rideId].length > 100) chatHistory[rideId].shift();
+
+    // Broadcast to the whole ride chat room
     io.to(`chat:${rideId}`).emit('chat:message', msg);
   });
 

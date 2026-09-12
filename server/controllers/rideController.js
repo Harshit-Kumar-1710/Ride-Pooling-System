@@ -12,8 +12,8 @@ const postRide = async (req, res) => {
     if (!origin || !destination || !departureTime || !seatsAvailable)
       return res.status(400).json({ message: 'All ride fields are required.' });
 
-    if (!vehicle || !vehicle.model || !vehicle.number || !vehicle.color) {
-      return res.status(400).json({ message: 'Compulsory vehicle details (Model, Plate Number, Color) are required.' });
+    if (!vehicle || !vehicle.model || !vehicle.number || !vehicle.color || !vehicle.fuelType) {
+      return res.status(400).json({ message: 'Compulsory vehicle details (Model, Plate Number, Color, Fuel Type) are required.' });
     }
 
     const ride = await Ride.create({
@@ -27,7 +27,8 @@ const postRide = async (req, res) => {
         model: vehicle.model,
         number: vehicle.number.toUpperCase(),
         color: vehicle.color,
-        type: vehicle.type || 'Car'
+        type: vehicle.type || 'Car',
+        fuelType: vehicle.fuelType || 'Petrol'
       }
     });
 

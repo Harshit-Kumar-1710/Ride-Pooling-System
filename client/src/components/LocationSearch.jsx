@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 
-// Build a meaningful short label from Nominatim result
+// Build a detailed, high-precision location label from Nominatim result
 const getLabel = (r) => {
-  // Use the name if available (e.g. "Dehradun Railway Station")
   const parts = r.display_name?.split(',').map(s => s.trim()) || [];
-  // First part is usually the POI name, second is road/area
-  if (parts.length >= 2) return `${parts[0]}, ${parts[1]}`;
+  if (parts.length >= 3) return parts.slice(0, 4).join(', ');
+  if (parts.length >= 2) return parts.slice(0, 3).join(', ');
   return parts[0] || `${parseFloat(r.lat).toFixed(4)}, ${parseFloat(r.lon).toFixed(4)}`;
 };
 

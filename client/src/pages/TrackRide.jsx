@@ -82,7 +82,7 @@ const TrackRide = () => {
                 <div style={{ marginTop: '0.8rem', padding: '0.6rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                   <p style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--accent)' }}>🚗 Vehicle Details</p>
                   <p style={{ fontSize: '0.82rem', fontWeight: '600', marginTop: '0.2rem' }}>{ride.vehicle.model} ({ride.vehicle.number})</p>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Color: {ride.vehicle.color} • Type: {ride.vehicle.type}</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Color: {ride.vehicle.color} • Type: {ride.vehicle.type} • Fuel: ⛽ {ride.vehicle.fuelType || 'Petrol'}</p>
                 </div>
               )}
             </div>
@@ -167,7 +167,7 @@ const TrackRide = () => {
       </div>
 
       {/* Ride Chat */}
-      <RideChat rideId={id} />
+      <RideChat rideId={id} isDriver={isDriver} passengers={ride?.passengers || []} />
     </div>
   );
 };

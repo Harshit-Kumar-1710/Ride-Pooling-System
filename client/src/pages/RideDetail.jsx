@@ -188,12 +188,12 @@ const RideDetail = () => {
                       <p style={{ fontWeight: '700', fontSize: '0.92rem', color: 'var(--accent)' }}>{ride.vehicle.number}</p>
                     </div>
                     <div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>COLOR</span>
-                      <p style={{ fontWeight: '600', fontSize: '0.88rem' }}>{ride.vehicle.color}</p>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>COLOR / TYPE</span>
+                      <p style={{ fontWeight: '600', fontSize: '0.88rem' }}>{ride.vehicle.color} ({ride.vehicle.type})</p>
                     </div>
                     <div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TYPE</span>
-                      <p style={{ fontWeight: '600', fontSize: '0.88rem' }}>{ride.vehicle.type}</p>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>FUEL TYPE</span>
+                      <p style={{ fontWeight: '700', fontSize: '0.88rem', color: 'var(--green)' }}>⛽ {ride.vehicle.fuelType || 'Petrol'}</p>
                     </div>
                   </div>
                 </div>

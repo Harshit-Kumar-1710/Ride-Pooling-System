@@ -176,7 +176,7 @@ const MyRides = () => {
                   )}
                   {booking.rideId?.vehicle && (
                     <p style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: '600', marginTop: '0.2rem' }}>
-                      🚗 Vehicle: {booking.rideId.vehicle.model} | {booking.rideId.vehicle.number} ({booking.rideId.vehicle.color})
+                      🚗 Vehicle: {booking.rideId.vehicle.model} | {booking.rideId.vehicle.number} ({booking.rideId.vehicle.color}) • ⛽ {booking.rideId.vehicle.fuelType || 'Petrol'}
                     </p>
                   )}
                 </div>
