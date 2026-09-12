@@ -1,11 +1,43 @@
 import { useState, useRef, useEffect } from 'react';
+import { getKnownLocations } from '../utils/nlpParser';
+
+// Known local landmarks with coordinates
+const POPULAR_UTTARAKHAND_LOCATIONS = [
+  { label: 'Graphic Era University, Dehradun', lat: 30.2729, lon: 78.0687, type: 'university' },
+  { label: 'Graphic Era Hill University, Dehradun', lat: 30.2735, lon: 78.0695, type: 'university' },
+  { label: 'ISBT Dehradun, Transport Nagar', lat: 30.3275, lon: 78.0420, type: 'bus_station' },
+  { label: 'Dehradun Railway Station', lat: 30.3181, lon: 78.0367, type: 'railway_station' },
+  { label: 'Jolly Grant Airport, Dehradun', lat: 30.1893, lon: 78.1803, type: 'airport' },
+  { label: 'Clock Tower, Rajpur Road, Dehradun', lat: 30.3255, lon: 78.0438, type: 'landmark' },
+  { label: 'Rispana Bridge, Dehradun', lat: 30.3050, lon: 78.0330, type: 'landmark' },
+  { label: 'Pacific Mall, Rajpur Road, Dehradun', lat: 30.3155, lon: 78.0002, type: 'mall' },
+  { label: 'Prem Nagar, Dehradun', lat: 30.2880, lon: 78.0080, type: 'area' },
+  { label: 'Clement Town, Dehradun', lat: 30.2835, lon: 78.0200, type: 'area' },
+  { label: 'UPES Dehradun, Bidholi Campus', lat: 30.2780, lon: 78.0960, type: 'university' },
+  { label: 'DIT University, Mussoorie Diversion', lat: 30.2665, lon: 78.0900, type: 'university' },
+  { label: 'Mussoorie, Uttarakhand', lat: 30.4598, lon: 78.0644, type: 'city' },
+  { label: 'Rishikesh, Uttarakhand', lat: 30.0869, lon: 78.2676, type: 'city' },
+  { label: 'Haridwar, Uttarakhand', lat: 29.9457, lon: 78.1642, type: 'city' },
+  { label: 'Roorkee, Uttarakhand', lat: 29.8543, lon: 77.8880, type: 'city' },
+  { label: 'IIT Roorkee, Uttarakhand', lat: 29.8649, lon: 77.8965, type: 'university' },
+  { label: 'Haldwani, Nainital District', lat: 29.2183, lon: 79.5130, type: 'city' },
+  { label: 'Nainital, Uttarakhand', lat: 29.3919, lon: 79.4542, type: 'city' },
+  { label: 'Almora, Uttarakhand', lat: 29.5971, lon: 79.6591, type: 'city' },
+  { label: 'Pithoragarh, Uttarakhand', lat: 29.5829, lon: 80.2182, type: 'city' },
+  { label: 'Rudrapur, Udham Singh Nagar', lat: 28.9772, lon: 79.4005, type: 'city' },
+  { label: 'Kashipur, Udham Singh Nagar', lat: 29.2104, lon: 78.9619, type: 'city' },
+  { label: 'Srinagar Garhwal, Uttarakhand', lat: 30.2223, lon: 78.7844, type: 'city' },
+];
 
 // Build a detailed, high-precision location label from Nominatim result
 const getLabel = (r) => {
-  const parts = r.display_name?.split(',').map(s => s.trim()) || [];
-  if (parts.length >= 3) return parts.slice(0, 4).join(', ');
-  if (parts.length >= 2) return parts.slice(0, 3).join(', ');
-  return parts[0] || `${parseFloat(r.lat).toFixed(4)}, ${parseFloat(r.lon).toFixed(4)}`;
+  if (r.display_name) {
+    const parts = r.display_name?.split(',').map(s => s.trim()) || [];
+    if (parts.length >= 3) return parts.slice(0, 4).join(', ');
+    if (parts.length >= 2) return parts.slice(0, 3).join(', ');
+    return parts[0];
+  }
+  return r.label || `${parseFloat(r.lat).toFixed(4)}, ${parseFloat(r.lon).toFixed(4)}`;
 };
 
 const LocationSearch = ({ placeholder, onSelect }) => {
@@ -16,33 +48,49 @@ const LocationSearch = ({ placeholder, onSelect }) => {
   const timerRef = useRef(null);
   const wrapRef  = useRef(null);
 
-  // Debounced autocomplete — fires 400ms after user stops typing
+  // Instant local suggestions + Nominatim geocoding
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (!query.trim() || query.length < 2) {
-      setResults([]);
-      return;
-    }
+    const q = query.trim().toLowerCase();
+
+    // Instant local matching from popular Uttarakhand dictionary
+    const localMatches = q.length >= 1
+      ? POPULAR_UTTARAKHAND_LOCATIONS.filter(item => item.label.toLowerCase().includes(q))
+      : POPULAR_UTTARAKHAND_LOCATIONS.slice(0, 6); // default top picks when clicking input
+
+    setResults(localMatches);
+
+    if (!q || q.length < 2) return;
+
     setLoading(true);
     timerRef.current = setTimeout(async () => {
       try {
-        // viewbox biases to Uttarakhand/Dehradun region for better local results
+        // Broad viewbox covering ALL of Uttarakhand & India
         const params = new URLSearchParams({
           q: query,
           format: 'json',
-          limit: '7',
+          limit: '10',
           countrycodes: 'in',
           addressdetails: '1',
           dedupe: '1',
-          viewbox: '77.5,29.9,78.5,30.6',
+          viewbox: '77.0,28.5,81.5,31.8',
           bounded: '0',
         });
         const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
         const data = await res.json();
-        setResults(data);
+        
+        // Combine local matches + Nominatim data, avoiding duplicates
+        const combined = [...localMatches];
+        data.forEach(item => {
+          const itemLabel = getLabel(item);
+          if (!combined.some(c => c.label.toLowerCase() === itemLabel.toLowerCase())) {
+            combined.push(item);
+          }
+        });
+        setResults(combined);
       } catch { }
       setLoading(false);
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timerRef.current);
   }, [query]);
@@ -60,7 +108,9 @@ const LocationSearch = ({ placeholder, onSelect }) => {
 
   const handleSelect = (r) => {
     const label = getLabel(r);
-    onSelect({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), label });
+    const lat = parseFloat(r.lat);
+    const lng = parseFloat(r.lon || r.lng);
+    onSelect({ lat, lng, label });
     setQuery(label);
     setResults([]);
     setFocused(false);
