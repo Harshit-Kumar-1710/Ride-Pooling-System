@@ -5,12 +5,14 @@ const BASE_CREDITS = 10;
 const PER_PASSENGER_CREDITS = 5;
 
 const awardCredits = async (driverId, passengerCount) => {
-  const amount = BASE_CREDITS + (PER_PASSENGER_CREDITS * passengerCount);
+  const count = Number.isFinite(passengerCount) ? passengerCount : 0;
+  const amount = BASE_CREDITS + (PER_PASSENGER_CREDITS * count);
 
   const user = await User.findById(driverId);
   if (!user) throw new Error('Driver not found');
 
-  const newBalance = user.credits + amount;
+  const currentBalance = Number.isFinite(user.credits) ? user.credits : 0;
+  const newBalance = currentBalance + amount;
 
   await User.findByIdAndUpdate(driverId, { credits: newBalance });
 
@@ -19,7 +21,7 @@ const awardCredits = async (driverId, passengerCount) => {
     type: 'earn',
     amount,
     balanceAfter: newBalance,
-    note: `Ride completed with ${passengerCount} passenger(s)`
+    note: `Ride completed with ${count} passenger(s)`
   });
 
   return { awarded: amount, newBalance };
