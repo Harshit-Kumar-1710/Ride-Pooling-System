@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import API from '../services/api';
+import LocationSearch from '../components/LocationSearch';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -30,6 +31,12 @@ const pickupIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41]
 });
 
+const passengerDropIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41], iconAnchor: [12, 41]
+});
+
 const hasVehicleDetails = (vehicle) => Boolean(vehicle?.model && vehicle?.number && vehicle?.color);
 
 const RideDetail = () => {
@@ -37,8 +44,8 @@ const RideDetail = () => {
   const { state } = useLocation();
   const navigate  = useNavigate();
   const ride      = state?.ride;
-  const pickup    = state?.pickup;
-  const drop      = state?.drop;
+  const [pickup, setPickup] = useState(state?.pickup || null);
+  const [drop, setDrop]     = useState(state?.drop || null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
@@ -206,20 +213,69 @@ const RideDetail = () => {
                 </div>
               )}
 
-              {/* Your pickup/drop */}
-              {pickup && drop && (
-                <div style={{ ...styles.card, animationDelay: '0.5s' }}>
-                  <p style={styles.sectionLabel}>Your journey</p>
-                  <div style={styles.journeyRow}>
-                    <span style={{ color: 'var(--green)' }}>●</span>
-                    <span style={styles.journeyLabel}>Pickup: {pickup.label}</span>
-                  </div>
-                  <div style={styles.journeyRow}>
-                    <span style={{ color: 'var(--accent)' }}>●</span>
-                    <span style={styles.journeyLabel}>Drop: {drop.label}</span>
-                  </div>
+              {/* Passenger journey details. These are also available when opening from Recommended Rides. */}
+              <div style={{ ...styles.card, animationDelay: '0.5s', borderLeft: '3px solid var(--green)' }}>
+                <p style={styles.sectionLabel}>Passenger Pickup & Drop Point</p>
+                <p style={styles.journeyHelp}>
+                  Specify your exact pickup and drop location. Driver departure is {formatTime(ride.departureTime)}.
+                </p>
+
+                {/* Quick Fill Shortcuts */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPickup({ lat: ride.origin.latitude, lng: ride.origin.longitude, label: ride.origin.label })}
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--green)',
+                      color: 'var(--green)',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      padding: '4px 10px',
+                      borderRadius: '99px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📍 Use Driver Origin
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDrop({ lat: ride.destination.latitude, lng: ride.destination.longitude, label: ride.destination.label })}
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--accent)',
+                      color: 'var(--accent)',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      padding: '4px 10px',
+                      borderRadius: '99px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🏁 Use Driver Destination
+                  </button>
                 </div>
-              )}
+
+                <div style={styles.locationField}>
+                  <label style={styles.locationLabel}><span style={{ color: 'var(--green)' }}>●</span> Passenger Pickup Point</label>
+                  <LocationSearch placeholder="Search your pickup point..." onSelect={setPickup} />
+                  {pickup ? (
+                    <p style={styles.locationSelected}>Pickup: {pickup.label}</p>
+                  ) : (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No pickup selected yet. Click shortcut or search above.</p>
+                  )}
+                </div>
+
+                <div style={styles.locationField}>
+                  <label style={styles.locationLabel}><span style={{ color: '#8b5cf6' }}>●</span> Passenger Drop Point</label>
+                  <LocationSearch placeholder="Search your drop point..." onSelect={setDrop} />
+                  {drop ? (
+                    <p style={styles.locationSelected}>Drop: {drop.label}</p>
+                  ) : (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No drop selected yet. Click shortcut or search above.</p>
+                  )}
+                </div>
+              </div>
 
               {error && <div style={styles.error}>{error}</div>}
 
@@ -246,6 +302,11 @@ const RideDetail = () => {
                 {pickup && (
                   <Marker position={[pickup.lat, pickup.lng]} icon={pickupIcon}>
                     <Popup>Your pickup: {pickup.label}</Popup>
+                  </Marker>
+                )}
+                {drop && (
+                  <Marker position={[drop.lat, drop.lng]} icon={passengerDropIcon}>
+                    <Popup>Your drop: {drop.label}</Popup>
                   </Marker>
                 )}
                 {route && <Polyline positions={route} color="#e63946" weight={4} opacity={0.8} />}
@@ -286,6 +347,10 @@ const styles = {
   driverId:     { color: 'var(--text-muted)', fontSize: '0.82rem' },
   journeyRow:   { display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' },
   journeyLabel: { color: 'var(--text-secondary)', fontSize: '0.85rem' },
+  journeyHelp: { color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.5', marginBottom: '0.9rem' },
+  locationField: { display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.75rem' },
+  locationLabel: { fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '700' },
+  locationSelected: { fontSize: '0.75rem', color: 'var(--green)', lineHeight: '1.35' },
   error:        { background: 'var(--red-soft)', border: '1px solid var(--red)', color: 'var(--red)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', animation: 'fadeInUp 0.3s ease' },
   bookBtn:      { padding: '0.9rem', background: 'linear-gradient(135deg, var(--green), #1aab4e)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: '1rem', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3)' },
   spinner:      { display: 'inline-block', width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite' },

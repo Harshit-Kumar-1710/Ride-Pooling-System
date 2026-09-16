@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
 import MovingCars from '../components/MovingCars';
+import LocationSearch from '../components/LocationSearch';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -10,6 +11,10 @@ const Dashboard = () => {
   const [recommended, setRecommended] = useState([]);
   const [loadingRec, setLoadingRec] = useState(true);
   const [hoveredAction, setHoveredAction] = useState(null);
+
+  const [pickup, setPickup] = useState(null);
+  const [drop, setDrop] = useState(null);
+  const [preferredTime, setPreferredTime] = useState('');
 
   useEffect(() => {
     const fetchRecommended = async () => {
@@ -149,7 +154,7 @@ const Dashboard = () => {
               <div
                 key={ride._id}
                 style={{ ...styles.recCard, animationDelay: `${0.1 + i * 0.1}s` }}
-                onClick={() => navigate(`/rides/${ride._id}`, { state: { ride } })}
+                onClick={() => navigate(`/rides/${ride._id}`, { state: { ride, pickup, drop, preferredTime } })}
                 onMouseEnter={e => {
                   e.currentTarget.style.borderColor = 'var(--accent)';
                   e.currentTarget.style.boxShadow = 'var(--shadow-card-hover)';
