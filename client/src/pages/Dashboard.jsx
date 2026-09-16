@@ -207,7 +207,7 @@ const Dashboard = () => {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                🕐 PREFERRED TIME (OPTIONAL)
+                🕐 PREFERRED TIME (e.g. 18:00 = 6 PM)
               </label>
               <input
                 type="datetime-local"
@@ -224,6 +224,11 @@ const Dashboard = () => {
                 value={preferredTime}
                 onChange={e => setPreferredTime(e.target.value)}
               />
+              {preferredTime && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--accent)', marginTop: '0.38rem', fontWeight: '600', lineHeight: '1.3' }}>
+                  Selected: {new Date(preferredTime).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                </p>
+              )}
             </div>
           </div>
         </div>

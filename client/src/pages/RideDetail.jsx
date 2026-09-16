@@ -318,7 +318,7 @@ const RideDetail = () => {
                 </div>
 
                 <div style={styles.locationField}>
-                  <label style={styles.locationLabel}>🕐 Passenger Preferred Travel Time (Optional)</label>
+                  <label style={styles.locationLabel}>🕐 Passenger Preferred Travel Time (e.g. 18:00 = 6 PM)</label>
                   <input
                     type="datetime-local"
                     style={{
@@ -336,7 +336,7 @@ const RideDetail = () => {
                   />
                   {passengerTime && (
                     <p style={{ fontSize: '0.75rem', color: 'var(--accent)', marginTop: '0.2rem', fontWeight: '600' }}>
-                      Preferred Time: {new Date(passengerTime).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      Preferred Time: {new Date(passengerTime).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
                     </p>
                   )}
                 </div>
