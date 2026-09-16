@@ -134,6 +134,21 @@ const Dashboard = () => {
           RECOMMENDED <span style={styles.heroItalic}>RIDES</span>
         </h2>
 
+        {compatMessage && (
+          <p style={{
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            color: compatMessage.includes('No driver') ? 'var(--accent)' : 'var(--green)',
+            marginBottom: '1rem',
+            background: compatMessage.includes('No driver') ? 'var(--accent-soft)' : 'var(--green-soft)',
+            padding: '0.6rem 1rem',
+            borderRadius: 'var(--radius-sm)',
+            border: `1px solid ${compatMessage.includes('No driver') ? 'var(--accent)' : 'var(--green)'}`
+          }}>
+            {compatMessage}
+          </p>
+        )}
+
         {loadingRec ? (
           <div className="dashboard-rides" style={styles.recGrid}>
             {[1,2,3].map(i => (

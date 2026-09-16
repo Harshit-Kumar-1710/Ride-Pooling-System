@@ -33,8 +33,9 @@ app.use('/api/reviews',  reviewRoutes);
 
 app.get('/', (req, res) => res.json({ message: 'Ridepooling API is running' }));
 
-// In-memory chat storage
+// In-memory chat storage and driver live locations
 const chatHistory = {};
+const activeDriverLocations = {};
 
 // Socket.io — live tracking
 io.on('connection', (socket) => {
@@ -50,11 +51,26 @@ io.on('connection', (socket) => {
   socket.on('passenger:join', ({ rideId }) => {
     socket.join(`ride:${rideId}`);
     console.log(`Passenger joined ride room ${rideId}`);
+    const lastLoc = activeDriverLocations[rideId];
+    if (lastLoc && lastLoc.active) {
+      socket.emit('driver:location', { lat: lastLoc.lat, lng: lastLoc.lng, active: true });
+    } else {
+      socket.emit('driver:locationStatus', { active: false });
+    }
   });
 
   // Driver sends location update
   socket.on('driver:location', ({ rideId, lat, lng }) => {
-    io.to(`ride:${rideId}`).emit('driver:location', { lat, lng });
+    activeDriverLocations[rideId] = { lat, lng, active: true, updatedAt: new Date() };
+    io.to(`ride:${rideId}`).emit('driver:location', { lat, lng, active: true });
+  });
+
+  // Driver stops/disables live location sharing
+  socket.on('driver:stopLocation', ({ rideId }) => {
+    if (activeDriverLocations[rideId]) {
+      activeDriverLocations[rideId].active = false;
+    }
+    io.to(`ride:${rideId}`).emit('driver:locationStatus', { active: false });
   });
 
   // Passenger sends live location update (optional for pickup tracking)
