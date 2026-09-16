@@ -1,12 +1,15 @@
 
 const parseToEpochMs = (dt) => {
   if (!dt) return null;
+  if (dt instanceof Date) return dt.getTime();
+  if (typeof dt === 'number') return dt;
   if (typeof dt === 'string') {
     if (dt.includes('--') || dt.endsWith(':')) return null;
     let isoStr = dt.trim();
     if (isoStr.includes('T') && !isoStr.includes('+') && !isoStr.includes('Z')) {
       const parts = isoStr.split(':');
       if (parts.length === 2) isoStr += ':00+05:30';
+      else if (parts.length === 3) isoStr += '+05:30';
       else isoStr += '+05:30';
     }
     const d = new Date(isoStr);
@@ -284,19 +287,15 @@ const searchRides = async (req, res) => {
       return isOnRoute(origin, destination, pickupCoords, dropCoords);
     });
 
-    // Time filter — only apply if preferredTime is a valid full datetime
-    let preferred = null;
-    if (preferredTime && preferredTime.includes('T') && !preferredTime.includes('--')) {
-      const parsed = new Date(preferredTime);
-      if (!isNaN(parsed.getTime())) {
-        preferred = parsed;
-      }
-    }
+    // Timezone-aware time filter — only apply if preferredTime is valid
+    const prefMs = parseToEpochMs(preferredTime);
 
-    const timeFiltered = preferred
+    const timeFiltered = prefMs
       ? matchedRides.filter(ride => {
-          const diffMins = Math.abs(new Date(ride.departureTime) - preferred) / (1000 * 60);
-          return diffMins <= 30; // 24-hour window
+          const rideMs = parseToEpochMs(ride.departureTime);
+          if (!rideMs) return true;
+          const diffMins = Math.abs(rideMs - prefMs) / (1000 * 60);
+          return diffMins <= 30; // Maximum 30 minutes time difference
         })
       : matchedRides;
 
@@ -305,16 +304,17 @@ const searchRides = async (req, res) => {
       ride => ride.driverId._id.toString() !== req.user.id
     );
 
-    const now = preferred || new Date();
+    const targetMs = prefMs || Date.now();
 
     // Scoring
     const scored = cleaned.map(ride => {
       const origin = { latitude: ride.origin.latitude, longitude: ride.origin.longitude };
       const destination = { latitude: ride.destination.latitude, longitude: ride.destination.longitude };
       const detourDistance = getDetourDistance(origin, destination, pickupCoords, dropCoords);
+      const rideMs = parseToEpochMs(ride.departureTime);
       const score = scoreRide(
-        { detourDistance, departureTime: ride.departureTime, driverRating: ride.driverId.rating },
-        { preferredTime: now }
+        { detourDistance, departureTime: rideMs, driverRating: ride.driverId.rating },
+        { preferredTime: targetMs }
       );
       return { ...ride.toObject(), detourDistance, score };
     });
