@@ -43,11 +43,15 @@ const RideDetail = () => {
   const { id }    = useParams();
   const { state } = useLocation();
   const navigate  = useNavigate();
-  const ride      = state?.ride;
-  const [pickup, setPickup] = useState(state?.pickup || null);
-  const [drop, setDrop]     = useState(state?.drop || null);
+  
+  const [ride, setRide]                   = useState(state?.ride || null);
+  const [pickup, setPickup]               = useState(state?.pickup || null);
+  const [drop, setDrop]                   = useState(state?.drop || null);
+  const [passengerTime, setPassengerTime] = useState(state?.preferredTime || '');
+  const [alreadyBooked, setAlreadyBooked] = useState(Boolean(state?.ride?.alreadyBooked));
 
   const [loading, setLoading] = useState(false);
+  const [fetchingRide, setFetchingRide] = useState(!state?.ride);
   const [error, setError]     = useState('');
   const [booked, setBooked]   = useState(false);
   const [route, setRoute]     = useState(null);
@@ -58,6 +62,34 @@ const RideDetail = () => {
     hour: '2-digit', minute: '2-digit'
   });
 
+  // Fetch ride from API if not passed via router state or refreshed
+  useEffect(() => {
+    if (!ride && id) {
+      setFetchingRide(true);
+      API.get(`/rides/${id}`)
+        .then(res => {
+          setRide(res.data.ride);
+        })
+        .catch(err => {
+          setError(err.response?.data?.message || 'Failed to fetch ride details.');
+        })
+        .finally(() => setFetchingRide(false));
+    } else {
+      setFetchingRide(false);
+    }
+
+    // Check if user already booked this ride
+    if (id) {
+      API.get('/bookings/mine')
+        .then(res => {
+          const myBooking = (res.data.bookings || []).find(b => (b.rideId?._id === id || b.rideId === id) && b.status === 'confirmed');
+          if (myBooking) setAlreadyBooked(true);
+        })
+        .catch(() => {});
+    }
+  }, [id, ride]);
+
+  // Fetch driving route & ETA
   useEffect(() => {
     if (!ride) return;
     const fetchRoute = async () => {
@@ -80,7 +112,7 @@ const RideDetail = () => {
 
   const handleBook = async () => {
     if (!pickup || !drop) {
-      setError('Pickup and drop location missing. Go back and search again.');
+      setError('Please select your pickup point and drop point above before confirming.');
       return;
     }
     setLoading(true);
@@ -99,6 +131,15 @@ const RideDetail = () => {
     }
   };
 
+  if (fetchingRide) return (
+    <div style={styles.page}>
+      <div style={styles.empty}>
+        <div style={styles.spinner} />
+        <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Loading ride details...</p>
+      </div>
+    </div>
+  );
+
   if (!ride) return (
     <div style={styles.page}>
       <div style={styles.empty}>
@@ -114,7 +155,7 @@ const RideDetail = () => {
     <div style={styles.page}>
       <div className="app-page-container" style={styles.container}>
         <div style={styles.header}>
-          <button style={styles.backBtn} onClick={() => navigate('/find-ride')}>← Back</button>
+          <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>← Back</button>
           <h2 style={styles.title}>Ride Details</h2>
         </div>
 
@@ -213,11 +254,11 @@ const RideDetail = () => {
                 </div>
               )}
 
-              {/* Passenger journey details. These are also available when opening from Recommended Rides. */}
+              {/* Passenger Journey Details: Pickup, Drop & Preferred Time */}
               <div style={{ ...styles.card, animationDelay: '0.5s', borderLeft: '3px solid var(--green)' }}>
                 <p style={styles.sectionLabel}>Passenger Pickup & Drop Point</p>
                 <p style={styles.journeyHelp}>
-                  Specify your exact pickup and drop location. Driver departure is {formatTime(ride.departureTime)}.
+                  Specify your exact pickup, drop location, and travel time. Driver departure is {formatTime(ride.departureTime)}.
                 </p>
 
                 {/* Quick Fill Shortcuts */}
@@ -303,13 +344,37 @@ const RideDetail = () => {
 
               {error && <div style={styles.error}>{error}</div>}
 
-              <button style={styles.bookBtn} onClick={handleBook} disabled={loading}>
-                {loading ? (
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    <span style={styles.spinner} /> Booking...
-                  </span>
-                ) : '✓  Confirm Booking — Free'}
-              </button>
+              {alreadyBooked ? (
+                <div style={{
+                  background: 'var(--green-soft)',
+                  border: '1px solid var(--green)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '1.2rem',
+                  textAlign: 'center',
+                  animation: 'fadeInUp 0.3s ease'
+                }}>
+                  <p style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--green)', marginBottom: '0.3rem' }}>
+                    ✓ You Have Already Booked This Ride!
+                  </p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                    Your seat is confirmed. Same passenger cannot book the same ride multiple times.
+                  </p>
+                  <button
+                    style={styles.primaryBtn}
+                    onClick={() => navigate(`/track/${id}`)}
+                  >
+                    🎫 Track My Ride →
+                  </button>
+                </div>
+              ) : (
+                <button style={styles.bookBtn} onClick={handleBook} disabled={loading}>
+                  {loading ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <span style={styles.spinner} /> Booking...
+                    </span>
+                  ) : '✓  Confirm Booking — Free'}
+                </button>
+              )}
             </div>
 
             {/* Right — map */}
@@ -371,13 +436,13 @@ const styles = {
   driverId:     { color: 'var(--text-muted)', fontSize: '0.82rem' },
   journeyRow:   { display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' },
   journeyLabel: { color: 'var(--text-secondary)', fontSize: '0.85rem' },
-  journeyHelp: { color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.5', marginBottom: '0.9rem' },
+  journeyHelp:  { color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.5', marginBottom: '0.9rem' },
   locationField: { display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.75rem' },
   locationLabel: { fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: '700' },
   locationSelected: { fontSize: '0.75rem', color: 'var(--green)', lineHeight: '1.35' },
   error:        { background: 'var(--red-soft)', border: '1px solid var(--red)', color: 'var(--red)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', animation: 'fadeInUp 0.3s ease' },
   bookBtn:      { padding: '0.9rem', background: 'linear-gradient(135deg, var(--green), #1aab4e)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: '1rem', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3)' },
-  spinner:      { display: 'inline-block', width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite' },
+  spinner:      { display: 'inline-block', width: '20px', height: '20px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.6s linear infinite' },
   successCard:  { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', padding: '3rem', textAlign: 'center', maxWidth: '480px', margin: '0 auto', animation: 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)', boxShadow: 'var(--shadow)' },
   successIcon:  { width: '64px', height: '64px', borderRadius: '50%', background: 'var(--green)', color: '#fff', fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.2rem', boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)' },
   successTitle: { fontFamily: "'Outfit', sans-serif", fontSize: '1.8rem', fontWeight: '900', marginBottom: '0.5rem' },
