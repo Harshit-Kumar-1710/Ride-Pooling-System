@@ -30,7 +30,7 @@ const Dashboard = () => {
             dropLat: drop.lat,
             dropLng: drop.lng,
             dropLabel: drop.label,
-            ...(preferredTime && { preferredTime })
+            ...(preferredTime && preferredTime.length >= 16 && !preferredTime.includes('--') && { preferredTime })
           });
           setRecommended(res.data.rides || []);
           if ((res.data.rides || []).length === 0) {
@@ -224,7 +224,7 @@ const Dashboard = () => {
                 value={preferredTime}
                 onChange={e => setPreferredTime(e.target.value)}
               />
-              {preferredTime && (
+              {preferredTime && preferredTime.length >= 16 && !preferredTime.includes('--') && (
                 <p style={{ fontSize: '0.75rem', color: 'var(--accent)', marginTop: '0.38rem', fontWeight: '600', lineHeight: '1.3' }}>
                   Selected: {new Date(preferredTime).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
                 </p>

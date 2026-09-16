@@ -1,18 +1,19 @@
 
 const parseToEpochMs = (dt) => {
   if (!dt) return null;
-  if (typeof dt === 'string' && dt.includes('T')) {
-    const cleanStr = dt.replace('Z', '').split('.')[0];
-    const [datePart, timePart] = cleanStr.split('T');
-    if (datePart && timePart) {
-      const [year, month, day] = datePart.split('-').map(Number);
-      const [hour, minute] = timePart.split(':').map(Number);
-      return Date.UTC(year, month - 1, day, hour, minute);
+  if (typeof dt === 'string') {
+    if (dt.includes('--') || dt.endsWith(':')) return null;
+    let isoStr = dt.trim();
+    if (isoStr.includes('T') && !isoStr.includes('+') && !isoStr.includes('Z')) {
+      const parts = isoStr.split(':');
+      if (parts.length === 2) isoStr += ':00+05:30';
+      else isoStr += '+05:30';
     }
+    const d = new Date(isoStr);
+    return isNaN(d.getTime()) ? null : d.getTime();
   }
   const d = new Date(dt);
-  if (isNaN(d.getTime())) return null;
-  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes());
+  return isNaN(d.getTime()) ? null : d.getTime();
 };
 const Ride    = require('../models/Ride');
 const Booking = require('../models/Booking');
