@@ -15,17 +15,42 @@ const Dashboard = () => {
   const [pickup, setPickup] = useState(null);
   const [drop, setDrop] = useState(null);
   const [preferredTime, setPreferredTime] = useState('');
+  const [compatMessage, setCompatMessage] = useState('');
 
   useEffect(() => {
     const fetchRecommended = async () => {
+      setLoadingRec(true);
+      setCompatMessage('');
       try {
-        const res = await API.get('/rides/recommended');
-        setRecommended(res.data.rides || []);
-      } catch (err) { console.error(err); }
-      finally { setLoadingRec(false); }
+        if (pickup && drop) {
+          const res = await API.post('/rides/search', {
+            pickupLat: pickup.lat,
+            pickupLng: pickup.lng,
+            pickupLabel: pickup.label,
+            dropLat: drop.lat,
+            dropLng: drop.lng,
+            dropLabel: drop.label,
+            ...(preferredTime && { preferredTime })
+          });
+          setRecommended(res.data.rides || []);
+          if ((res.data.rides || []).length === 0) {
+            setCompatMessage('No driver rides available matching your exact route & time detour criteria.');
+          } else {
+            setCompatMessage(`Found ${res.data.rides.length} compatible ride${res.data.rides.length > 1 ? 's' : ''} matching your route!`);
+          }
+        } else {
+          const res = await API.get('/rides/recommended');
+          setRecommended(res.data.rides || []);
+        }
+      } catch (err) {
+        console.error(err);
+        setCompatMessage(err.response?.data?.message || 'Error checking compatibility');
+      } finally {
+        setLoadingRec(false);
+      }
     };
     fetchRecommended();
-  }, []);
+  }, [pickup, drop, preferredTime]);
 
   const formatTime = (dt) => new Date(dt).toLocaleString('en-IN', {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
@@ -134,6 +159,75 @@ const Dashboard = () => {
           RECOMMENDED <span style={styles.heroItalic}>RIDES</span>
         </h2>
 
+        {/* Passenger Pickup, Drop Point & Time Options for Recommended Rides */}
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1.25rem 1.5rem',
+          marginBottom: '1.5rem',
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              📍 Passenger Journey Options
+            </span>
+            {(pickup || drop || preferredTime) && (
+              <button
+                type="button"
+                onClick={() => { setPickup(null); setDrop(null); setPreferredTime(''); }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--accent)', fontSize: '0.78rem', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Clear Selections ✕
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', alignItems: 'start' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--green)', marginBottom: '0.4rem' }}>
+                ● PASSENGER PICKUP POINT
+              </label>
+              <LocationSearch placeholder="Search your pickup location..." onSelect={setPickup} />
+              {pickup && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--green)', marginTop: '0.38rem', fontWeight: '600', lineHeight: '1.3' }}>
+                  Selected: {pickup.label}
+                </p>
+              )}
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--accent)', marginBottom: '0.4rem' }}>
+                ● PASSENGER DROP POINT
+              </label>
+              <LocationSearch placeholder="Search your drop location..." onSelect={setDrop} />
+              {drop && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--accent)', marginTop: '0.38rem', fontWeight: '600', lineHeight: '1.3' }}>
+                  Selected: {drop.label}
+                </p>
+              )}
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                🕐 PREFERRED TIME (OPTIONAL)
+              </label>
+              <input
+                type="datetime-local"
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 0.8rem',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.85rem',
+                  outline: 'none'
+                }}
+                value={preferredTime}
+                onChange={e => setPreferredTime(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
         {compatMessage && (
           <p style={{
             fontSize: '0.85rem',
@@ -181,6 +275,16 @@ const Dashboard = () => {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
+                {ride.detourDistance !== undefined && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '700', padding: '3px 8px', borderRadius: '99px', background: 'var(--green-soft)', color: 'var(--green)', border: '1px solid var(--green)' }}>
+                      #{i + 1} Compatible Match
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      📍 {ride.detourDistance} km detour
+                    </span>
+                  </div>
+                )}
                 <div style={styles.recRoute}>
                   <span style={styles.recDotGreen}>●</span>
                   <span style={styles.recRouteText}>{ride.origin?.label}</span>
@@ -303,7 +407,7 @@ const styles = {
   trustItem: { display: 'flex', gap: '1rem', padding: '1.6rem', borderRight: '1px solid var(--border)' },
   trustNumber: { color: 'var(--accent)', fontFamily: "'Outfit', sans-serif", fontWeight: '800', fontSize: '0.8rem', letterSpacing: '0.08em' },
   trustTitle: { fontSize: '0.92rem', fontWeight: '750', marginBottom: '0.35rem' },
-  trustCopy: { fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.6' },
+  trustCopy: { color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.6' }
 };
 
 export default Dashboard;
