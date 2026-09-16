@@ -1,3 +1,19 @@
+
+const parseToEpochMs = (dt) => {
+  if (!dt) return null;
+  if (typeof dt === 'string' && dt.includes('T')) {
+    const cleanStr = dt.replace('Z', '').split('.')[0];
+    const [datePart, timePart] = cleanStr.split('T');
+    if (datePart && timePart) {
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hour, minute] = timePart.split(':').map(Number);
+      return Date.UTC(year, month - 1, day, hour, minute);
+    }
+  }
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return null;
+  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes());
+};
 const Ride    = require('../models/Ride');
 const Booking = require('../models/Booking');
 const User    = require('../models/User');
@@ -279,7 +295,7 @@ const searchRides = async (req, res) => {
     const timeFiltered = preferred
       ? matchedRides.filter(ride => {
           const diffMins = Math.abs(new Date(ride.departureTime) - preferred) / (1000 * 60);
-          return diffMins <= 30; // 24-hour window
+          return diffMins <= 120; // 24-hour window
         })
       : matchedRides;
 
