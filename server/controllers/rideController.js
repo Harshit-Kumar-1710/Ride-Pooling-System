@@ -295,7 +295,7 @@ const searchRides = async (req, res) => {
     const timeFiltered = preferred
       ? matchedRides.filter(ride => {
           const diffMins = Math.abs(new Date(ride.departureTime) - preferred) / (1000 * 60);
-          return diffMins <= 120; // 24-hour window
+          return diffMins <= 30; // 24-hour window
         })
       : matchedRides;
 
