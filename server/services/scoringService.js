@@ -1,5 +1,5 @@
 const MAX_DISTANCE_KM = 20;
-const MAX_TIME_DIFF_MINUTES = 60;
+const MAX_TIME_DIFF_MINUTES = 30;
 
 const W_DISTANCE = 0.5;
 const W_TIME = 0.3;
