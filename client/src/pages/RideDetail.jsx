@@ -275,6 +275,30 @@ const RideDetail = () => {
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No drop selected yet. Click shortcut or search above.</p>
                   )}
                 </div>
+
+                <div style={styles.locationField}>
+                  <label style={styles.locationLabel}>🕐 Passenger Preferred Travel Time (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.8rem',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.85rem',
+                      outline: 'none'
+                    }}
+                    value={passengerTime}
+                    onChange={e => setPassengerTime(e.target.value)}
+                  />
+                  {passengerTime && (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--accent)', marginTop: '0.2rem', fontWeight: '600' }}>
+                      Preferred Time: {new Date(passengerTime).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {error && <div style={styles.error}>{error}</div>}

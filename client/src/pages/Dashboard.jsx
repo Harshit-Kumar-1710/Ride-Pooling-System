@@ -263,7 +263,13 @@ const Dashboard = () => {
               <div
                 key={ride._id}
                 style={{ ...styles.recCard, animationDelay: `${0.1 + i * 0.1}s` }}
-                onClick={() => navigate(`/rides/${ride._id}`, { state: { ride, pickup, drop, preferredTime } })}
+                onClick={() => {
+                  if (ride.alreadyBooked) {
+                    navigate(`/track/${ride._id}`);
+                  } else {
+                    navigate(`/rides/${ride._id}`, { state: { ride, pickup, drop, preferredTime } });
+                  }
+                }}
                 onMouseEnter={e => {
                   e.currentTarget.style.borderColor = 'var(--accent)';
                   e.currentTarget.style.boxShadow = 'var(--shadow-card-hover)';
